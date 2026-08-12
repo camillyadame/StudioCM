@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 export default function WhatsAppButton() {
   const [hovered, setHovered] = useState(false)
-  const phone = '5511999999999'
+  const phone = '5518981541288'
   const message = 'Olá! Vim pelo site e gostaria de agendar um horário no StudioCM ♡'
 
   return (

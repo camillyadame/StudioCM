@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import carolHero from '@/imports/carol-lash-designer-v2-2.png'
 
 function useReveal(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -15,13 +16,28 @@ function useReveal(ref: React.RefObject<HTMLElement | null>) {
   }, [])
 }
 
-const SERVICES = [
-  { name: 'Volume Russo', desc: 'Técnica com múltiplos fios ultra finos para efeito máximo e olhar poderoso', price: 'R$ 180', time: '2h30', popular: true },
-  { name: 'Mega Volume', desc: 'Fios em leque de 10D ou mais — para quem ama drama e impacto total', price: 'R$ 220', time: '3h', popular: false },
-  { name: 'Híbrido', desc: 'Mix perfeito entre clássico e volume — resultado natural com glamour', price: 'R$ 160', time: '2h', popular: true },
-  { name: 'Clássico', desc: 'Um fio por cílio natural — sofisticado, delicado e discreto', price: 'R$ 140', time: '1h30', popular: false },
-  { name: 'Manutenção', desc: 'Reposição dos fios caídos para manter o volume e a forma ideais', price: 'R$ 90', time: '1h', popular: false },
-  { name: 'Retirada', desc: 'Remoção segura e sem danos dos fios com produto especializado', price: 'R$ 50', time: '30min', popular: false },
+const APLICACOES = [
+  { name: 'Volume Light', price: 'R$ 100,00' },
+  { name: 'Volume Brasileiro', price: 'R$ 120,00' },
+  { name: 'Volume 4D', price: 'R$ 135,00' },
+  { name: 'Volume Árabe', price: 'R$ 140,00' },
+  { name: 'Volume 6D', price: 'R$ 150,00' },
+  { name: 'Fox', price: 'R$ 155,00' },
+  { name: 'Capping', price: 'R$ 185,00' },
+]
+
+const MANUTENCOES = [
+  { name: 'Manutenção Light', price: 'R$ 70,00' },
+  { name: 'Manutenção Brasileiro', price: 'R$ 80,00' },
+  { name: 'Manutenção 4D e Árabe', price: 'R$ 85,00' },
+  { name: 'Manutenção 6D', price: 'R$ 95,00' },
+  { name: 'Manutenção Fox', price: 'R$ 100,00' },
+  { name: 'Manutenção Capping', price: 'R$ 115,00' },
+]
+
+const ADICIONAIS = [
+  { name: 'Design de Sobrancelha', price: 'R$ 25,00' },
+  { name: 'Buço', price: 'R$ 15,00' },
 ]
 
 const FAQ = [
@@ -63,7 +79,7 @@ export default function Carol() {
             </p>
             <div className="animate-fade-up delay-500" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link to="/agendamento" className="btn-pink">Agendar com a Carol ♡</Link>
-              <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
+              <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
             </div>
             <div className="animate-fade-up delay-600" style={{ display: 'flex', gap: 28, marginTop: 40 }}>
               {[{ n: '+300', l: 'clientes' }, { n: '3+', l: 'anos exp.' }, { n: '100%', l: 'satisfação' }].map((s) => (
@@ -79,7 +95,7 @@ export default function Carol() {
           <div className="animate-fade-in delay-300" style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: 340, height: 420, background: 'linear-gradient(145deg, rgba(196,168,232,0.3), rgba(123,47,190,0.5))', borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', overflow: 'hidden', position: 'relative', boxShadow: '0 30px 80px rgba(0,0,0,0.3)' }} className="animate-float">
               <img
-                src="https://images.unsplash.com/photo-1595550912256-b24059bb08e8?w=500&h=600&fit=crop&auto=format"
+                src={carolHero}
                 alt="Carol — Lash Designer"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
               />
@@ -102,31 +118,80 @@ export default function Carol() {
         <div className="reveal" style={{ textAlign: 'center', marginBottom: 60 }}>
           <span className="section-label" style={{ background: '#E8DAFF', borderColor: '#C4A8E8', color: '#7B2FBE' }}>Serviços</span>
           <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: '#2D0820', margin: '16px 0 0' }}>
-            Encontre o técnica <span style={{ color: '#7B2FBE' }}>ideal</span> pra você
+            Encontre a técnica <span style={{ color: '#7B2FBE' }}>ideal</span> pra você
           </h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-          {SERVICES.map((s, i) => (
-            <div key={s.name} className="reveal" style={{ background: 'white', borderRadius: 24, padding: '24px', border: s.popular ? '2px solid #C4A8E8' : '1.5px solid rgba(196,168,232,0.2)', position: 'relative', transition: 'all 0.3s ease', overflow: 'hidden' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(123,47,190,0.12)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
-            >
-              {s.popular && (
-                <div style={{ position: 'absolute', top: 16, right: 16, background: '#7B2FBE', color: 'white', fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 50, letterSpacing: '0.06em' }}>
-                  MAIS PEDIDO
+
+        {/* Aplicações */}
+        <div className="reveal" style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#7B2FBE', letterSpacing: '0.06em', textTransform: 'uppercase' }}>✦ Aplicações</span>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, rgba(123,47,190,0.25), transparent)' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+            {APLICACOES.map((s) => (
+              <div key={s.name} className="reveal" style={{ background: 'white', borderRadius: 24, padding: '24px', border: '1.5px solid rgba(196,168,232,0.2)', position: 'relative', transition: 'all 0.3s ease', overflow: 'hidden' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(123,47,190,0.12)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#2D0820', margin: 0 }}>{s.name}</h3>
+                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#7B2FBE', flexShrink: 0 }}>{s.price}</span>
                 </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#2D0820', margin: 0, paddingRight: s.popular ? 90 : 0 }}>{s.name}</h3>
               </div>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#8B5A7A', lineHeight: 1.6, margin: '0 0 16px' }}>{s.desc}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#7B2FBE' }}>{s.price}</span>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: '#8B5A7A', background: '#F5EEFF', padding: '4px 10px', borderRadius: 50 }}>⏱ {s.time}</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+
+        {/* Manutenções */}
+        <div className="reveal" style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#7B2FBE', letterSpacing: '0.06em', textTransform: 'uppercase' }}>✦ Manutenções</span>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, rgba(123,47,190,0.25), transparent)' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 20 }}>
+            {MANUTENCOES.map((s) => (
+              <div key={s.name} className="reveal" style={{ background: 'white', borderRadius: 24, padding: '24px', border: '1.5px solid rgba(196,168,232,0.2)', position: 'relative', transition: 'all 0.3s ease', overflow: 'hidden' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(123,47,190,0.12)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#2D0820', margin: 0 }}>{s.name}</h3>
+                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#7B2FBE', flexShrink: 0 }}>{s.price}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Aviso manutenção */}
+          <div style={{ background: '#F5EEFF', border: '1px solid rgba(196,168,232,0.4)', borderRadius: 16, padding: '14px 20px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span style={{ color: '#7B2FBE', fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>⚠</span>
+            <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
+              Manutenção de 20 a 25 dias no máximo. Após esse período, será cobrado o valor de uma nova aplicação.
+            </p>
+          </div>
+        </div>
+
+        {/* Serviços Adicionais */}
+        <div className="reveal" style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#7B2FBE', letterSpacing: '0.06em', textTransform: 'uppercase' }}>✦ Serviços Adicionais</span>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, rgba(123,47,190,0.25), transparent)' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+            {ADICIONAIS.map((s) => (
+              <div key={s.name} className="reveal" style={{ background: 'white', borderRadius: 24, padding: '24px', border: '1.5px solid rgba(196,168,232,0.2)', position: 'relative', transition: 'all 0.3s ease', overflow: 'hidden' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(123,47,190,0.12)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#2D0820', margin: 0 }}>{s.name}</h3>
+                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#7B2FBE', flexShrink: 0 }}>{s.price}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="reveal" style={{ textAlign: 'center', marginTop: 48 }}>
           <Link to="/agendamento" className="btn-primary" style={{ background: '#7B2FBE' }}>Agendar agora com a Carol ♡</Link>
         </div>

@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 type Step = 1 | 2 | 3 | 4
 
 const SPECIALISTS = [
-  { id: 'carol', name: 'Carol', role: 'Lash Designer', specialty: 'Extensão de Cílios', color: '#7B2FBE', bg: '#E8DAFF', icon: '✦', services: ['Volume Russo', 'Mega Volume', 'Híbrido', 'Clássico', 'Manutenção', 'Retirada'] },
-  { id: 'malu', name: 'Malu', role: 'Nail Designer', specialty: 'Unhas & Nail Art', color: '#E0198A', bg: '#FFD6ED', icon: '♡', services: ['Fibra de Vidro', 'Gel UV', 'Acrílico', 'Esmaltação Gel', 'Nail Art', 'Manutenção'] },
+  { id: 'carol', name: 'Carol', role: 'Lash Designer', specialty: 'Extensão de Cílios', color: '#7B2FBE', bg: '#E8DAFF', icon: '✦', services: ['Volume Light', 'Volume Brasileiro', 'Volume 4D', 'Volume Árabe', 'Volume 6D', 'Fox', 'Capping', 'Manutenção Light', 'Manutenção Brasileiro', 'Manutenção 4D e Árabe', 'Manutenção 6D', 'Manutenção Fox', 'Manutenção Capping', 'Design de Sobrancelha', 'Buço'] },
+  { id: 'malu', name: 'Malu', role: 'Nail Designer', specialty: 'Unhas & Nail Art', color: '#E0198A', bg: '#FFD6ED', icon: '♡', services: ['Alongamento Gel na Tips — Simples / Decoração simples', 'Alongamento Gel na Tips — Nail Art / Decorações 3D', 'Banho de Gel — Simples / Decoração simples', 'Banho de Gel — Nail Art / Decoração 3D', 'Postiça Realista — Simples / Decoração simples', 'Postiça Realista — Nail Art / Decoração 3D', 'Esmaltação em Gel nas Unhas Naturais', 'Pedicure e Manicure'] },
 ]
 
 const TIMES = ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
@@ -74,7 +74,7 @@ export default function Booking() {
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/" className="btn-pink">Voltar para início ♡</Link>
-            <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="btn-secondary">WhatsApp →</a>
+            <a href={`https://wa.me/${selectedSpec?.id === 'malu' ? '5518997116620' : '5518981541288'}`} target="_blank" rel="noopener noreferrer" className="btn-secondary">WhatsApp →</a>
           </div>
         </div>
       </div>
@@ -136,6 +136,17 @@ export default function Booking() {
 
             {specialist && (
               <div>
+                {/* Sinal de confirmação */}
+                <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '16px 20px', marginBottom: 24 }}>
+                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 6px' }}>
+                    {selectedSpec?.id === 'carol' ? '✦ Confirmação de agendamento — Carol' : '♡ Confirmação de agendamento — Malu'}
+                  </p>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
+                    {selectedSpec?.id === 'carol'
+                      ? 'Para confirmar seu agendamento com a Carol, é necessário o pagamento antecipado de um sinal correspondente a 30% do valor do procedimento escolhido.'
+                      : 'Para confirmar seu agendamento com a Malu, é necessário o pagamento antecipado de um sinal fixo de R$ 30,00.'}
+                  </p>
+                </div>
                 <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>Selecione o serviço:</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                   {selectedSpec?.services.map((sv) => (
@@ -240,6 +251,17 @@ export default function Booking() {
                   <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', fontWeight: 700, textAlign: 'right' }}>{row!.value}</span>
                 </div>
               ))}
+            </div>
+            {/* Aviso de sinal */}
+            <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '16px 20px', marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 6px' }}>
+                💳 Sinal para confirmação
+              </p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
+                {selectedSpec?.id === 'carol'
+                  ? 'Para confirmar seu agendamento com a Carol, é necessário o pagamento antecipado de um sinal correspondente a 30% do valor do procedimento escolhido.'
+                  : 'Para confirmar seu agendamento com a Malu, é necessário o pagamento antecipado de um sinal fixo de R$ 30,00.'}
+              </p>
             </div>
             <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#8B5A7A', lineHeight: 1.6 }}>
               ✦ Ao confirmar, você concorda que entraremos em contato via WhatsApp para validar o agendamento. Cancelamentos com até 24h de antecedência.

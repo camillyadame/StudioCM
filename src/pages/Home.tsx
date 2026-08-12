@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import maluNail1 from '@/imports/malu-nail-designer.png'
+import maluNail2 from '@/imports/malu-nail-designer-1.png'
+import maluNail3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
+import maluNail4 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
+import carolCard from '@/imports/carol-lash-designer-v2.png'
+import carolBg from '@/imports/carol-lash-designer-v2-1.png'
+import carolGal1 from '@/imports/Captura_de_tela_de_2026-08-12_15-42-29.png'
+import carolGal2 from '@/imports/WhatsApp_Image_2026-08-11_at_22.18.33-1.jpeg'
 
 function useReveal(rootRef?: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -38,7 +46,7 @@ const TESTIMONIALS = [
 const PROMOS = [
   { title: 'Primeira Visita', desc: 'Ganhe 20% de desconto no seu primeiro serviço', code: 'PRIMEIRAVEZ', color: '#E0198A', badge: 'NOVIDADE' },
   { title: 'Cílios + Unhas', desc: 'Combo completo com 15% off nos dois serviços', code: 'COMBO15', color: '#B94FA0', badge: 'MAIS PEDIDO' },
-  { title: 'Indique e Ganhe', desc: 'Traga uma amiga e ganhe R$30 de crédito', code: 'AMIGA30', color: '#7B2FBE', badge: 'FIDELIDADE' },
+  { title: 'Indique e Ganhe', desc: 'Traga uma amiga e ganhe R$10 de crédito', code: 'AMIGA10', color: '#7B2FBE', badge: 'FIDELIDADE' },
 ]
 
 function Sparkle({ style }: { style?: React.CSSProperties }) {
@@ -86,7 +94,7 @@ export default function Home() {
               <span className="section-label">✦ Beleza que transforma</span>
             </div>
 
-            <h1 className="animate-fade-up delay-100" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, color: '#2D0820', marginBottom: 0 }}>
+            <h1 className="animate-fade-up delay-100" style={{ fontFamily: "'Fredoka One', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, color: '#2D0820', marginBottom: 0 }}>
               Studio
             </h1>
             <h1 className="animate-fade-up delay-200 shimmer-text" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, margin: '0 0 8px' }}>
@@ -125,7 +133,7 @@ export default function Home() {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1595550912256-b24059bb08e8?w=400&h=530&fit=crop&auto=format"
+                  src={carolCard}
                   alt="Carol — Lash Designer"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'luminosity', opacity: 0.85 }}
                 />
@@ -147,7 +155,7 @@ export default function Home() {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1769687209448-025548dfca8b?w=400&h=530&fit=crop&auto=format"
+                  src={maluNail1}
                   alt="Malu — Nail Designer"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'luminosity', opacity: 0.85 }}
                 />
@@ -193,7 +201,7 @@ export default function Home() {
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 40px rgba(123,47,190,0.1)'; }}
           >
             <div style={{ height: 300, background: 'linear-gradient(135deg, #7B2FBE, #C4A8E8)', position: 'relative', overflow: 'hidden' }}>
-              <img src="https://images.unsplash.com/photo-1709477542149-f4e0e21d590b?w=600&h=400&fit=crop&auto=format" alt="Carol fazendo cílios" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7, mixBlendMode: 'luminosity' }} />
+              <img src={carolBg} alt="Carol fazendo cílios" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7, mixBlendMode: 'luminosity' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(123,47,190,0.5), rgba(196,168,232,0.3))' }} />
               <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: 50, padding: '6px 16px', border: '1px solid rgba(255,255,255,0.3)' }}>
                 <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.8rem', color: 'white', fontWeight: 600, letterSpacing: '0.08em' }}>✦ LASH DESIGNER</span>
@@ -224,7 +232,7 @@ export default function Home() {
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 40px rgba(224,25,138,0.1)'; }}
           >
             <div style={{ height: 300, background: 'linear-gradient(135deg, #E0198A, #B94FA0)', position: 'relative', overflow: 'hidden' }}>
-              <img src="https://images.unsplash.com/photo-1638959882708-9503b1cd595f?w=600&h=400&fit=crop&auto=format" alt="Malu fazendo unhas" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7, mixBlendMode: 'luminosity' }} />
+              <img src={maluNail2} alt="Malu fazendo unhas" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7, mixBlendMode: 'luminosity' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(224,25,138,0.5), rgba(185,79,160,0.3))' }} />
               <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: 50, padding: '6px 16px', border: '1px solid rgba(255,255,255,0.3)' }}>
                 <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.8rem', color: 'white', fontWeight: 600, letterSpacing: '0.08em' }}>♡ NAIL DESIGNER</span>
@@ -339,10 +347,10 @@ export default function Home() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'auto auto', gap: 16 }}>
           {[
-            { url: 'https://images.unsplash.com/photo-1606158562001-5b5a8729a80b?w=400&h=400&fit=crop&auto=format', span: 'none', alt: 'Cílios volumosos' },
-            { url: 'https://images.unsplash.com/photo-1769687209448-025548dfca8b?w=400&h=400&fit=crop&auto=format', span: 'none', alt: 'Unhas decoradas' },
-            { url: 'https://images.unsplash.com/photo-1741885179307-403129e9d80b?w=400&h=500&fit=crop&auto=format', span: '1 / span 2', alt: 'Mão com joias' },
-            { url: 'https://images.unsplash.com/photo-1595550912256-b24059bb08e8?w=400&h=400&fit=crop&auto=format', span: 'none', alt: 'Maquiagem olhos' },
+            { url: carolGal1, span: 'none', alt: 'Cílios volumosos' },
+            { url: maluNail3, span: 'none', alt: 'Unhas decoradas' },
+            { url: maluNail4, span: '1 / span 2', alt: 'Nail art Malu' },
+            { url: carolGal2, span: 'none', alt: 'Maquiagem olhos' },
           ].map((img, i) => (
             <div key={i} className="reveal" style={{ borderRadius: 20, overflow: 'hidden', aspectRatio: i === 2 ? '16/9' : '1', gridColumn: img.span !== 'none' ? img.span : undefined, cursor: 'pointer', position: 'relative', transition: 'transform 0.3s ease' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)'; }}
@@ -445,9 +453,9 @@ export default function Home() {
             </div>
             <div className="reveal-left" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[
-                { icon: '📍', title: 'Endereço', content: 'Rua das Flores, 123 — Jardim Primavera\nSão Paulo, SP — CEP 01234-567' },
+                { icon: '📍', title: 'Endereço', content: 'Rua Juca Pita, 15-71\nPresidente Epitácio - SP' },
                 { icon: '⏰', title: 'Horário', content: 'Segunda a Sexta: 9h às 19h\nSábado: 9h às 17h' },
-                { icon: '📱', title: 'WhatsApp', content: '(11) 99999-9999\nResposta rápida!' },
+                { icon: '📱', title: 'WhatsApp', content: 'Carol (Cílios): +55 18 98154-1288\nMalu (Unhas): +55 18 99711-6620' },
               ].map((c) => (
                 <div key={c.icon} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                   <div style={{ width: 44, height: 44, background: 'rgba(196,168,232,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>{c.icon}</div>
@@ -474,7 +482,7 @@ export default function Home() {
             <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
               <div style={{ fontSize: '3rem', marginBottom: 12 }}>📍</div>
               <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.2rem', color: '#C4A8E8', margin: '0 0 8px', fontWeight: 600 }}>Studio CM</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>Rua das Flores, 123 — SP</p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>Rua Juca Pita, 15-71 — Presidente Epitácio - SP</p>
               <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.85rem', padding: '10px 20px' }}>
                 Ver no Maps →
               </a>
@@ -497,8 +505,11 @@ export default function Home() {
             <Link to="/agendamento" className="btn-pink" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Agendar meu horário ♡
             </Link>
-            <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
-              Chamar no WhatsApp →
+            <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+              Carol — WhatsApp ✦
+            </a>
+            <a href="https://wa.me/5518997116620" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+              Malu — WhatsApp ♡
             </a>
           </div>
         </div>

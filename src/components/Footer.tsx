@@ -64,8 +64,8 @@ export default function Footer() {
           <div>
             <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', marginBottom: 20 }}>Contato</p>
             {[
-              { icon: '📍', text: 'Rua das Flores, 123\nSão Paulo, SP' },
-              { icon: '📱', text: '(11) 99999-9999' },
+              { icon: '📍', text: 'Rua Juca Pita, 15-71\nPresidente Epitácio - SP' },
+              { icon: '📱', text: 'Carol (Cílios): +55 18 98154-1288\nMalu (Unhas): +55 18 99711-6620' },
               { icon: '⏰', text: 'Seg–Sáb: 9h às 19h' },
               { icon: '✉️', text: 'contato@studiocm.com' },
             ].map((c) => (

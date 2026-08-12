@@ -40,7 +40,7 @@ export default function Navbar() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 70, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'baseline', gap: 2 }}>
-          <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: '1.3rem', color: '#2D0820', fontWeight: 600 }}>Studio</span>
+          <span style={{ fontFamily: "'Fredoka One', sans-serif", fontSize: '1.3rem', color: '#2D0820', fontWeight: 600 }}>Studio</span>
           <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.8rem', fontWeight: 700, color: '#E0198A', letterSpacing: '-0.02em' }}>CM</span>
           <span style={{ marginLeft: 2, fontSize: '1rem' }}>♡</span>
         </Link>

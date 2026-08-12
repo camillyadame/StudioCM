@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import maluHero from '@/imports/malu-nail-designer-2.png'
+import maluInspo1 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
+import maluInspo2 from '@/imports/WhatsApp_Image_2026-08-09_at_18.56.19.jpeg'
+import maluInspo3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
+import maluInspo4 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.48.jpeg'
 
 function useReveal(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -15,20 +20,59 @@ function useReveal(ref: React.RefObject<HTMLElement | null>) {
   }, [])
 }
 
-const SERVICES = [
-  { name: 'Fibra de Vidro', desc: 'Alongamento ultraleve e resistente — perfeito para quem tem unhas fracas', price: 'R$ 150', time: '2h', popular: true },
-  { name: 'Gel UV', desc: 'Unhas em gel moldadas a mão com acabamento perfeito e duração incrível', price: 'R$ 130', time: '1h30', popular: false },
-  { name: 'Acrílico', desc: 'Alongamento clássico com resistência máxima para qualquer estilo', price: 'R$ 120', time: '1h30', popular: false },
-  { name: 'Esmaltação em Gel', desc: 'Esmaltação de longa duração — cor intensa e brilho que dura semanas', price: 'R$ 80', time: '1h', popular: true },
-  { name: 'Nail Art', desc: 'Arte totalmente personalizada — flores, geométrico, glitter, pedrinhas e muito mais', price: 'A partir de R$ 20', time: '30min+', popular: false },
-  { name: 'Manutenção', desc: 'Manutenção do crescimento para manter sempre no ponto ideal', price: 'R$ 70', time: '1h', popular: false },
+const CATEGORIAS_MALU = [
+  {
+    category: 'Alongamento de Unhas — Gel na Tips',
+    time: 'até 2h15 (Simples) / até 3h (Nail Art)',
+    manutencaoPeriodo: '15 a 30 dias',
+    variants: [
+      { name: 'Simples / Decoração simples', aplicacao: 'R$ 110,00', manutencao: 'R$ 90,00' },
+      { name: 'Nail Art / Decorações 3D', aplicacao: 'R$ 130,00', manutencao: 'R$ 110,00' },
+    ],
+  },
+  {
+    category: 'Banho de Gel',
+    warning: 'NÃO ALONGA AS UNHAS.',
+    time: 'até 2h',
+    manutencaoPeriodo: '15 a 30 dias',
+    variants: [
+      { name: 'Simples / Decoração simples', aplicacao: 'R$ 90,00', manutencao: 'R$ 75,00' },
+      { name: 'Nail Art / Decoração 3D', aplicacao: 'R$ 95,00', manutencao: 'R$ 80,00' },
+    ],
+  },
+  {
+    category: 'Postiça Realista',
+    time: 'até 2h',
+    durabilidade: 'até 25 dias',
+    semManutencao: true,
+    variants: [
+      { name: 'Simples / Decoração simples', aplicacao: 'R$ 60,00' },
+      { name: 'Nail Art / Decoração 3D', aplicacao: 'R$ 70,00' },
+    ],
+  },
+  {
+    category: 'Esmaltação em Gel nas Unhas Naturais',
+    time: '1h30 a 2h',
+    durabilidade: 'até 25 dias',
+    semManutencao: true,
+    note: 'Realizado nas unhas naturais. Não é um alongamento.',
+    variants: [
+      { name: 'Simples ou decorada', aplicacao: 'R$ 60,00' },
+    ],
+  },
+  {
+    category: 'Pedicure e Manicure',
+    variants: [
+      { name: 'Pedicure e Manicure', aplicacao: 'R$ 110,00' },
+    ],
+  },
 ]
 
 const INSPO = [
-  { url: 'https://images.unsplash.com/photo-1769687209448-025548dfca8b?w=300&h=300&fit=crop&auto=format', alt: 'Nail art floral' },
-  { url: 'https://images.unsplash.com/photo-1741885179307-403129e9d80b?w=300&h=300&fit=crop&auto=format', alt: 'Unhas com joias' },
-  { url: 'https://images.unsplash.com/photo-1766184313414-78438d0e038a?w=300&h=300&fit=crop&auto=format', alt: 'Unhas coloridas' },
-  { url: 'https://images.unsplash.com/photo-1779398260979-667aa7baa0b8?w=300&h=300&fit=crop&auto=format', alt: 'Mão com pink' },
+  { url: maluInspo1, alt: 'French com leopard' },
+  { url: maluInspo2, alt: 'Pedicure french' },
+  { url: maluInspo3, alt: 'French amarelo glitter' },
+  { url: maluInspo4, alt: 'Nail art pink e preto' },
 ]
 
 export default function Malu() {
@@ -63,7 +107,7 @@ export default function Malu() {
             </p>
             <div className="animate-fade-up delay-500" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link to="/agendamento" className="btn-primary" style={{ background: 'white', color: '#E0198A' }}>Agendar com a Malu ♡</Link>
-              <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
+              <a href="https://wa.me/5518997116620" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
             </div>
             <div className="animate-fade-up delay-600" style={{ display: 'flex', gap: 28, marginTop: 40 }}>
               {[{ n: '+10', l: 'serviços disponíveis' }, { n: '100%', l: 'personalizado' }, { n: '5★', l: 'avaliação' }].map((s) => (
@@ -79,7 +123,7 @@ export default function Malu() {
           <div className="animate-fade-in delay-300" style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: 340, height: 420, background: 'linear-gradient(145deg, rgba(255,182,220,0.3), rgba(185,79,160,0.5))', borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', overflow: 'hidden', position: 'relative', boxShadow: '0 30px 80px rgba(0,0,0,0.3)' }} className="animate-float">
               <img
-                src="https://images.unsplash.com/photo-1779398260979-667aa7baa0b8?w=500&h=600&fit=crop&auto=format"
+                src={maluHero}
                 alt="Malu — Nail Designer"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
               />
@@ -127,27 +171,78 @@ export default function Malu() {
               O serviço <span style={{ color: '#E0198A' }}>perfeito</span> pra você
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-            {SERVICES.map((s, i) => (
-              <div key={s.name} className="reveal" style={{ background: 'white', borderRadius: 24, padding: '24px', border: s.popular ? '2px solid #E0198A' : '1.5px solid rgba(224,25,138,0.15)', position: 'relative', overflow: 'hidden', transition: 'all 0.3s ease' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(224,25,138,0.12)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
-              >
-                {s.popular && (
-                  <div style={{ position: 'absolute', top: 16, right: 16, background: '#E0198A', color: 'white', fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 50 }}>
-                    MAIS PEDIDO
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+            {CATEGORIAS_MALU.map((grupo) => (
+              <div key={grupo.category}>
+                {/* Cabeçalho da categoria */}
+                <div className="reveal" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', background: '#FFD6ED', padding: '4px 18px', borderRadius: 50, whiteSpace: 'nowrap' }}>♡ {grupo.category}</span>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(224,25,138,0.18)' }} />
+                </div>
+
+                {/* Warning da categoria (ex: Banho de Gel) */}
+                {'warning' in grupo && (
+                  <div className="reveal" style={{ marginBottom: 16 }}>
+                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.85rem', color: '#E0198A', background: 'rgba(224,25,138,0.1)', border: '1.5px solid rgba(224,25,138,0.3)', padding: '3px 14px', borderRadius: 50 }}>⚠ {grupo.warning as string}</span>
                   </div>
                 )}
-                <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#2D0820', margin: '0 0 8px', paddingRight: s.popular ? 90 : 0 }}>{s.name}</h3>
-                <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#8B5A7A', lineHeight: 1.6, margin: '0 0 16px' }}>{s.desc}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#E0198A' }}>{s.price}</span>
-                  <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: '#8B5A7A', background: '#FFD6ED', padding: '4px 10px', borderRadius: 50 }}>⏱ {s.time}</span>
+
+                {/* Metadados da categoria */}
+                {'time' in grupo && (
+                  <div className="reveal" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+                    <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A', background: 'white', border: '1px solid rgba(224,25,138,0.15)', padding: '4px 12px', borderRadius: 50 }}>⏱ Procedimento: {grupo.time as string}</span>
+                    {'manutencaoPeriodo' in grupo && (
+                      <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A', background: 'white', border: '1px solid rgba(224,25,138,0.15)', padding: '4px 12px', borderRadius: 50 }}>🔄 Manutenção: {grupo.manutencaoPeriodo as string}</span>
+                    )}
+                    {'durabilidade' in grupo && (
+                      <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A', background: 'white', border: '1px solid rgba(224,25,138,0.15)', padding: '4px 12px', borderRadius: 50 }}>✦ Durabilidade: {grupo.durabilidade as string}</span>
+                    )}
+                    {'semManutencao' in grupo && grupo.semManutencao && (
+                      <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#E0198A', background: 'rgba(224,25,138,0.08)', border: '1px solid rgba(224,25,138,0.25)', padding: '4px 12px', borderRadius: 50 }}>Não possui manutenção</span>
+                    )}
+                  </div>
+                )}
+                {'note' in grupo && (
+                  <div className="reveal" style={{ marginBottom: 16 }}>
+                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#8B5A7A', fontStyle: 'italic', margin: 0 }}>{grupo.note as string}</p>
+                  </div>
+                )}
+
+                {/* Cards das variantes */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+                  {grupo.variants.map((v) => (
+                    <div key={v.name} className="reveal" style={{ background: 'white', borderRadius: 24, padding: '24px', border: '1.5px solid rgba(224,25,138,0.15)', position: 'relative', overflow: 'hidden', transition: 'all 0.3s ease' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(224,25,138,0.12)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(224,25,138,0.35)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(224,25,138,0.15)'; }}
+                    >
+                      <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#2D0820', margin: '0 0 16px' }}>{v.name}</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 12, borderTop: '1px solid rgba(224,25,138,0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A' }}>Aplicação</span>
+                          <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#E0198A' }}>{v.aplicacao}</span>
+                        </div>
+                        {'manutencao' in v && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A' }}>Manutenção</span>
+                            <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.05rem', color: '#B94FA0' }}>{(v as any).manutencao}</span>
+                          </div>
+                        )}
+                        {'time' in v && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A' }}>⏱ Procedimento</span>
+                            <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A', background: '#FFD6ED', padding: '3px 10px', borderRadius: 50 }}>{(v as any).time}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
           </div>
-          <div className="reveal" style={{ textAlign: 'center', marginTop: 48 }}>
+
+          <div className="reveal" style={{ textAlign: 'center', marginTop: 56 }}>
             <Link to="/agendamento" className="btn-pink">Agendar agora com a Malu ♡</Link>
           </div>
         </div>
