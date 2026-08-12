@@ -1,0 +1,10 @@
+{
+  "description": "This sophisticated beauty salon website offers a seamless booking experience for eyelash and nail services, showcasing elegant designs and client testimonials.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
