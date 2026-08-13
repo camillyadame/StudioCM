@@ -1,13 +1,70 @@
+# =========================================================
+# StudioCM — arquivos que não devem ir para o Git/GitHub
+# =========================================================
+
+# Dependências
 node_modules/
+
+# Builds
 dist/
 build/
+
+# Cache / Vite / TypeScript
 .cache/
-.env*
 .vite/
-vite.config.*.timestamp-*
 *.tsbuildinfo
-*-debug.log*
+vite.config.*.timestamp-*
+
+# =========================================================
+# VARIÁVEIS DE AMBIENTE
+# Nunca versionar credenciais reais
+# =========================================================
+.env
+.env.*
+!.env.example
+
+# =========================================================
+# CREDENCIAIS / CHAVES PRIVADAS
+# =========================================================
+*service-account*.json
+*service_account*.json
+google-calendar-*.json
+credentials*.json
+client-secret*.json
+client_secret*.json
+
+*.pem
+*.key
+*.p12
+*.pfx
+
+# =========================================================
+# Logs
+# =========================================================
 logs/
 *.log
-.claude-replay.*
+*-debug.log*
+
+# =========================================================
+# Arquivos temporários
+# =========================================================
 .tmp-*
+*.tmp
+*.swp
+*.swo
+
+# =========================================================
+# Ferramentas de IA / desenvolvimento
+# =========================================================
+.claude-replay.*
+
+# =========================================================
+# Sistema operacional
+# =========================================================
+.DS_Store
+Thumbs.db
+
+# =========================================================
+# Editores
+# =========================================================
+.idea/
