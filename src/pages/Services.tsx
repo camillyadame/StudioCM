@@ -27,13 +27,13 @@ function useReveal(ref: React.RefObject<HTMLElement | null>) {
 }
 
 const CILIOS_APLICACOES = [
-  { name: 'Volume Light', price: 'R$ 100,00', icon: '✦', img: imgVolumeLight },
-  { name: 'Volume Brasileiro', price: 'R$ 120,00', icon: '✦', img: imgVolumeBrasileiro },
-  { name: 'Volume 4D', price: 'R$ 135,00', icon: '✦', img: imgVolume4D },
-  { name: 'Volume Árabe', price: 'R$ 140,00', icon: '✦', img: imgVolumeArabe },
-  { name: 'Volume 6D', price: 'R$ 150,00', icon: '✦', img: imgVolume6D },
-  { name: 'Fox', price: 'R$ 155,00', icon: '✦', img: imgFox },
-  { name: 'Capping', price: 'R$ 185,00', icon: '✦', img: imgCapping },
+  { name: 'Volume Light', price: 'R$ 100,00', icon: '✦', img: imgVolumeLight, focus: '50% 35%' },
+  { name: 'Volume Brasileiro', price: 'R$ 120,00', icon: '✦', img: imgVolumeBrasileiro, focus: '50% 35%' },
+  { name: 'Volume 4D', price: 'R$ 135,00', icon: '✦', img: imgVolume4D, focus: '50% 32%' },
+  { name: 'Volume Árabe', price: 'R$ 140,00', icon: '✦', img: imgVolumeArabe, focus: '50% 32%' },
+  { name: 'Volume 6D', price: 'R$ 150,00', icon: '✦', img: imgVolume6D, focus: '55% 24%' },
+  { name: 'Fox', price: 'R$ 155,00', icon: '✦', img: imgFox, focus: '78% 18%' },
+  { name: 'Capping', price: 'R$ 185,00', icon: '✦', img: imgCapping, focus: '72% 28%' },
 ]
 const CILIOS_MANUTENCOES = [
   { name: 'Manutenção Light', price: 'R$ 70,00', icon: '✦' },
@@ -121,9 +121,26 @@ export default function Services() {
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(196,168,232,0.2)'; }}
                     >
                       {'img' in s && (s as any).img && (
-                        <div style={{ height: 160, overflow: 'hidden' }}>
-                          <img src={(s as any).img} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                            onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.08)'}
+                        <div
+                          style={{
+                            width: '100%',
+                            aspectRatio: '4 / 3',
+                            overflow: 'hidden',
+                            background: '#F5EEFF',
+                          }}
+                        >
+                          <img
+                            src={(s as any).img}
+                            alt={s.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'block',
+                              objectFit: 'cover',
+                              objectPosition: (s as any).focus ?? '50% 50%',
+                              transition: 'transform 0.4s ease',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'}
                             onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'}
                           />
                         </div>
@@ -151,9 +168,19 @@ export default function Services() {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.borderColor = activeBg; }}
               >
                 {'img' in s && (s as any).img && (
-                  <div style={{ height: 180, overflow: 'hidden' }}>
-                    <img src={(s as any).img} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                      onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.08)'}
+                  <div style={{ width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: '#FFF4FA' }}>
+                    <img
+                      src={(s as any).img}
+                      alt={s.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'block',
+                        objectFit: 'cover',
+                        objectPosition: '50% 50%',
+                        transition: 'transform 0.4s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'}
                       onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'}
                     />
                   </div>

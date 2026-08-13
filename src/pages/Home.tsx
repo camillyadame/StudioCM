@@ -71,7 +71,7 @@ export default function Home() {
   return (
     <div ref={pageRef}>
       {/* ─── HERO ──────────────────────────────────────────────────────── */}
-      <section style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden', paddingTop: 70 }}>
+      <section className="home-hero" style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden', paddingTop: 70 }}>
         {/* BG blobs */}
         <div style={{ position: 'absolute', top: -80, right: -100, width: 500, height: 500, background: 'radial-gradient(circle, rgba(196,168,232,0.35) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -80, width: 400, height: 400, background: 'radial-gradient(circle, rgba(224,25,138,0.12) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
@@ -87,30 +87,30 @@ export default function Home() {
         <div style={{ position: 'absolute', bottom: 180, right: '12%', color: '#B94FA0', opacity: 0.5, fontSize: 24 }} className="animate-float delay-300">♡</div>
         <div style={{ position: 'absolute', bottom: 260, left: '8%', color: '#C4A8E8', opacity: 0.4, fontSize: 18 }} className="animate-float-slow">✦</div>
 
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center', width: '100%' }}>
+        <div className="home-hero-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center', width: '100%' }}>
           {/* Left */}
-          <div>
+          <div className="home-hero-copy">
             <div className="animate-fade-up" style={{ marginBottom: 20 }}>
               <span className="section-label">✦ Beleza que transforma</span>
             </div>
 
-            <h1 className="animate-fade-up delay-100" style={{ fontFamily: "'Fredoka One', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, color: '#2D0820', marginBottom: 0 }}>
+            <h1 className="animate-fade-up delay-100 home-hero-title" style={{ fontFamily: "'Fredoka One', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, color: '#2D0820', marginBottom: 0 }}>
               Studio
             </h1>
-            <h1 className="animate-fade-up delay-200 shimmer-text" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, margin: '0 0 8px' }}>
+            <h1 className="animate-fade-up delay-200 shimmer-text home-hero-title" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, margin: '0 0 8px' }}>
               CM ♡
             </h1>
-            <p className="animate-fade-up delay-300" style={{ fontFamily: "'Nunito', sans-serif", fontSize: '1.15rem', color: '#8B5A7A', lineHeight: 1.7, marginBottom: 36, maxWidth: 440 }}>
+            <p className="animate-fade-up delay-300 home-hero-description" style={{ fontFamily: "'Nunito', sans-serif", fontSize: '1.15rem', color: '#8B5A7A', lineHeight: 1.7, marginBottom: 36, maxWidth: 440 }}>
               Especialistas em cílios e unhas que realçam o que há de mais bonito em você. Arte, cuidado e personalidade em cada detalhe.
             </p>
 
-            <div className="animate-fade-up delay-400" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 48 }}>
+            <div className="animate-fade-up delay-400 home-hero-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 48 }}>
               <Link to="/agendamento" className="btn-pink">Agendar agora ♡</Link>
               <Link to="/servicos" className="btn-secondary">Ver serviços →</Link>
             </div>
 
             {/* Stats */}
-            <div className="animate-fade-up delay-500" style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+            <div className="animate-fade-up delay-500 home-hero-stats" style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
               {[
                 { n: '+500', label: 'clientes atendidas' },
                 { n: '5 ★', label: 'avaliação média' },
@@ -125,9 +125,9 @@ export default function Home() {
           </div>
 
           {/* Right — specialist cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, position: 'relative' }} className="animate-fade-in delay-300">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, position: 'relative' }} className="animate-fade-in delay-300 home-specialist-cards">
             {/* Carol card */}
-            <Link to="/carol" style={{ textDecoration: 'none', gridColumn: '1', marginTop: 32 }} className="animate-float-slow">
+            <Link to="/carol" style={{ textDecoration: 'none', gridColumn: '1', marginTop: 32 }} className="animate-float-slow home-specialist-card home-specialist-card-carol">
               <div style={{ background: 'linear-gradient(145deg, #7B2FBE, #C4A8E8)', borderRadius: 28, overflow: 'hidden', aspectRatio: '3/4', position: 'relative', cursor: 'pointer', boxShadow: '0 20px 50px rgba(123, 47, 190, 0.25)', transition: 'transform 0.3s ease' }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)' }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
@@ -149,7 +149,7 @@ export default function Home() {
             </Link>
 
             {/* Malu card */}
-            <Link to="/malu" style={{ textDecoration: 'none', gridColumn: '2' }} className="animate-float delay-400">
+            <Link to="/malu" style={{ textDecoration: 'none', gridColumn: '2' }} className="animate-float delay-400 home-specialist-card home-specialist-card-malu">
               <div style={{ background: 'linear-gradient(145deg, #E0198A, #B94FA0)', borderRadius: 28, overflow: 'hidden', aspectRatio: '3/4', position: 'relative', cursor: 'pointer', boxShadow: '0 20px 50px rgba(224, 25, 138, 0.25)', transition: 'transform 0.3s ease' }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)' }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
@@ -183,7 +183,7 @@ export default function Home() {
       </div>
 
       {/* ─── ESPECIALISTAS ─────────────────────────────────────────────── */}
-      <section style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
+      <section className="home-section home-specialists-section" style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
           <span className="section-label">Nossas Especialistas</span>
           <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 12px' }}>
@@ -194,7 +194,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
+        <div className="home-specialists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
           {/* Carol */}
           <div className="reveal-left" style={{ background: 'white', borderRadius: 32, overflow: 'hidden', boxShadow: '0 8px 40px rgba(123,47,190,0.1)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-8px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 60px rgba(123,47,190,0.18)'; }}
@@ -260,7 +260,7 @@ export default function Home() {
       </section>
 
       {/* ─── SERVIÇOS & PREÇOS ─────────────────────────────────────────── */}
-      <section style={{ background: '#2D0820', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
+      <section className="home-section home-services-preview" style={{ background: '#2D0820', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, background: 'radial-gradient(circle, rgba(196,168,232,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 300, height: 300, background: 'radial-gradient(circle, rgba(224,25,138,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
 
@@ -334,8 +334,8 @@ export default function Home() {
       </section>
 
       {/* ─── GALERIA ───────────────────────────────────────────────────── */}
-      <section style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
-        <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 20, marginBottom: 48 }}>
+      <section className="home-section home-gallery-section" style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
+        <div className="reveal home-gallery-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 20, marginBottom: 48 }}>
           <div>
             <span className="section-label">Galeria</span>
             <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 0' }}>
@@ -345,7 +345,7 @@ export default function Home() {
           <Link to="/galeria" className="btn-secondary">Ver galeria completa →</Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'auto auto', gap: 16 }}>
+        <div className="home-gallery-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'auto auto', gap: 16 }}>
           {[
             { url: carolGal1, span: 'none', alt: 'Cílios volumosos' },
             { url: maluNail3, span: 'none', alt: 'Unhas decoradas' },
@@ -370,7 +370,7 @@ export default function Home() {
       </section>
 
       {/* ─── PROMOÇÕES ─────────────────────────────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF)', padding: '100px 24px' }}>
+      <section className="home-section home-promos-section" style={{ background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF)', padding: '100px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
             <span className="section-label">Promoções & Cupons</span>
@@ -441,7 +441,7 @@ export default function Home() {
       </section>
 
       {/* ─── CONTATO & LOCALIZAÇÃO ─────────────────────────────────────── */}
-      <section style={{ background: '#2D0820', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
+      <section className="home-section home-contact-section" style={{ background: '#2D0820', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 0, right: 0, width: 350, height: 350, background: 'radial-gradient(circle, rgba(224,25,138,0.12) 0%, transparent 70%)', borderRadius: '50%' }} />
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 60, alignItems: 'center' }}>
           <div>
@@ -492,7 +492,7 @@ export default function Home() {
       </section>
 
       {/* ─── CTA AGENDAMENTO ───────────────────────────────────────────── */}
-      <section style={{ padding: '100px 24px', textAlign: 'center', background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF, #FBF0F8)' }}>
+      <section className="home-section home-cta-section" style={{ padding: '100px 24px', textAlign: 'center', background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF, #FBF0F8)' }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
           <div className="reveal animate-float-slow" style={{ fontSize: '3rem', marginBottom: 20 }}>✦</div>
           <h2 className="reveal" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2.5rem, 5vw, 3.8rem)', color: '#2D0820', margin: '0 0 16px', lineHeight: 1.1 }}>

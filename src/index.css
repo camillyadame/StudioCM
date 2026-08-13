@@ -23,13 +23,33 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
+  margin: 0;
+  min-width: 320px;
+  width: 100%;
+  max-width: 100%;
   font-family: 'Nunito', sans-serif;
   background-color: #FBF0F8;
   color: #2D0820;
   overflow-x: hidden;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 /* Scrollbar */
@@ -145,6 +165,7 @@ body {
 .btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: #2D0820;
   color: #FBF0F8;
@@ -168,6 +189,7 @@ body {
 .btn-secondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: transparent;
   color: #2D0820;
@@ -191,6 +213,7 @@ body {
 .btn-pink {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: linear-gradient(135deg, #E0198A, #B94FA0);
   color: white;
@@ -286,4 +309,475 @@ body {
   display: flex;
   width: max-content;
   animation: marquee 25s linear infinite;
+}
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.site-navbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 1000;
+  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+}
+
+.site-navbar-solid {
+  background: rgba(251, 240, 248, 0.96);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 30px rgba(45, 8, 32, 0.07);
+  border-bottom-color: rgba(196, 168, 232, 0.2);
+}
+
+.site-navbar-inner {
+  width: 100%;
+  max-width: 1200px;
+  height: 70px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.site-logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.site-logo-studio {
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 1.3rem;
+  color: #2D0820;
+  font-weight: 600;
+}
+
+.site-logo-cm {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #E0198A;
+  letter-spacing: -0.02em;
+}
+
+.site-logo-heart {
+  margin-left: 2px;
+  font-size: 1rem;
+  color: #2D0820;
+}
+
+.site-nav-desktop {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.site-nav-desktop .nav-link {
+  font-size: 0.95rem;
+}
+
+.site-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.site-navbar-booking {
+  font-size: 0.9rem;
+  padding: 10px 22px;
+}
+
+.site-menu-button {
+  width: 42px;
+  height: 42px;
+  padding: 9px;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.site-menu-button span {
+  width: 24px;
+  height: 2px;
+  display: block;
+  border-radius: 99px;
+  background: #2D0820;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.site-menu-button.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.site-menu-button.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.site-menu-button.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.site-mobile-menu {
+  display: none;
+}
+
+/* =========================================================
+   HOME — desktop base
+   ========================================================= */
+
+.home-hero-grid,
+.home-specialist-cards,
+.home-specialists-grid,
+.home-gallery-grid {
+  min-width: 0;
+}
+
+.home-hero-copy {
+  min-width: 0;
+}
+
+.home-specialist-card {
+  min-width: 0;
+}
+
+/* =========================================================
+   RESPONSIVE — tablet
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .site-nav-desktop,
+  .site-navbar-booking {
+    display: none;
+  }
+
+  .site-menu-button {
+    display: flex;
+  }
+
+  .site-mobile-menu {
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(251, 240, 248, 0.99);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid transparent;
+    transition: max-height 0.35s ease, border-color 0.35s ease;
+  }
+
+  .site-mobile-menu.is-open {
+    max-height: calc(100dvh - 70px);
+    overflow-y: auto;
+    border-top-color: rgba(196, 168, 232, 0.25);
+  }
+
+  .site-mobile-menu-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px 26px;
+  }
+
+  .site-mobile-link {
+    display: block;
+    width: 100%;
+    padding: 13px 4px;
+    color: #2D0820;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(196, 168, 232, 0.18);
+  }
+
+  .site-mobile-link.active {
+    color: #E0198A;
+  }
+
+  .site-mobile-booking {
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .home-hero {
+    min-height: auto !important;
+  }
+
+  .home-hero-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 44px !important;
+    padding-top: 54px !important;
+    padding-bottom: 64px !important;
+  }
+
+  .home-hero-copy {
+    max-width: 650px;
+  }
+
+  .home-specialist-cards {
+    width: min(100%, 560px);
+    margin: 0 auto;
+  }
+
+  .home-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — mobile
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .site-navbar-inner {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .site-logo-studio {
+    font-size: 1.05rem;
+  }
+
+  .site-logo-cm {
+    font-size: 1.5rem;
+  }
+
+  .site-logo-heart {
+    font-size: 0.9rem;
+  }
+
+  .site-menu-button {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+
+  .site-mobile-menu.is-open {
+    max-height: calc(100dvh - 64px);
+  }
+
+  .home-hero {
+    padding-top: 64px !important;
+    overflow: hidden !important;
+  }
+
+  .home-hero-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 34px !important;
+    padding: 42px 18px 56px !important;
+  }
+
+  .home-hero-copy {
+    width: 100%;
+    text-align: left;
+  }
+
+  .home-hero-title {
+    font-size: clamp(3rem, 17vw, 4.15rem) !important;
+    line-height: 0.98 !important;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .home-hero-description {
+    width: 100%;
+    max-width: none !important;
+    margin-bottom: 28px !important;
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .home-hero-actions {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    margin-bottom: 34px !important;
+  }
+
+  .home-hero-actions .btn-pink,
+  .home-hero-actions .btn-secondary {
+    width: 100%;
+    min-height: 52px;
+    padding: 13px 18px;
+  }
+
+  .home-hero-stats {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .home-hero-stats > div {
+    min-width: 0;
+  }
+
+  .home-hero-stats p:first-child {
+    font-size: 1.4rem !important;
+  }
+
+  .home-hero-stats p:last-child {
+    font-size: 0.72rem !important;
+    line-height: 1.3;
+  }
+
+  .home-specialist-cards {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    align-items: start;
+  }
+
+  .home-specialist-card {
+    width: 100%;
+    min-width: 0;
+    margin-top: 0 !important;
+    grid-column: auto !important;
+  }
+
+  .home-specialist-card > div {
+    width: 100%;
+    border-radius: 22px !important;
+  }
+
+  .home-specialist-card img {
+    display: block;
+  }
+
+  .home-section,
+  .home-specialists-section,
+  .home-gallery-section {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  .home-specialists-section,
+  .home-gallery-section {
+    padding-top: 72px !important;
+    padding-bottom: 72px !important;
+  }
+
+  .home-services-preview,
+  .home-promos-section,
+  .home-contact-section,
+  .home-cta-section {
+    padding-top: 72px !important;
+    padding-bottom: 72px !important;
+  }
+
+  .home-specialists-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 22px !important;
+  }
+
+  .home-gallery-heading {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .home-gallery-heading .btn-secondary {
+    width: 100%;
+  }
+
+  .home-gallery-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: none !important;
+  }
+
+  .home-gallery-grid > div {
+    grid-column: auto !important;
+    aspect-ratio: 4 / 3 !important;
+  }
+
+  .section-label {
+    max-width: 100%;
+    padding: 6px 13px;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-pink {
+    max-width: 100%;
+  }
+
+  .reveal-left,
+  .reveal-right {
+    transform: translateY(24px);
+  }
+
+  .reveal-left.visible,
+  .reveal-right.visible {
+    transform: translateY(0);
+  }
+
+  /* Hover transforms are distracting on touch screens. */
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-pink:hover,
+  .card:hover {
+    transform: none;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .home-hero-grid {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .home-hero-title {
+    font-size: clamp(2.7rem, 16vw, 3.5rem) !important;
+  }
+
+  .home-specialist-cards {
+    gap: 9px !important;
+  }
+
+  .home-hero-stats {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .home-hero-stats > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+}
+
+/* Respect reduced-motion accessibility preferences. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
