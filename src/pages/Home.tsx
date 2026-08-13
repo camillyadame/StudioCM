@@ -22,19 +22,6 @@ function useReveal(rootRef?: React.RefObject<HTMLElement | null>) {
   }, [])
 }
 
-const SERVICES_CILIOS = [
-  { name: 'Volume Russo', desc: 'Fios ultra finos, efeito dramático e duradouro', price: 'R$ 180', time: '2h30', icon: '✦' },
-  { name: 'Híbrido', desc: 'Mix de clássico e volume para um resultado natural', price: 'R$ 160', time: '2h', icon: '✦' },
-  { name: 'Clássico', desc: 'Extensão fio a fio para cílios naturais e delicados', price: 'R$ 140', time: '1h30', icon: '✦' },
-  { name: 'Manutenção', desc: 'Reposição dos fios para manter o volume perfeito', price: 'R$ 90', time: '1h', icon: '✦' },
-]
-
-const SERVICES_UNHAS = [
-  { name: 'Fibra de Vidro', desc: 'Alongamento natural e resistente com fibra de vidro', price: 'R$ 150', time: '2h', icon: '♡' },
-  { name: 'Gel UV', desc: 'Unhas em gel com acabamento impecável e duração', price: 'R$ 130', time: '1h30', icon: '♡' },
-  { name: 'Esmaltação em Gel', desc: 'Esmaltação de longa duração com brilho intenso', price: 'R$ 80', time: '1h', icon: '♡' },
-  { name: 'Nail Art', desc: 'Arte personalizada que conta a sua história', price: 'A partir de R$ 20', time: '30min', icon: '♡' },
-]
 
 const TESTIMONIALS = [
   { name: 'Ana Luíza', role: 'Cliente há 1 ano', text: 'A Carol transformou meu olhar! Cada sessão é um mimo e os resultados duram muito mais do que eu esperava. Recomendo de olhos fechados! 🪄', avatar: '👩🏽', color: '#E8DAFF' },
@@ -244,10 +231,10 @@ export default function Home() {
                 <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, rgba(224,25,138,0.3), transparent)' }} />
               </div>
               <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', lineHeight: 1.7, marginBottom: 20 }}>
-                Nail designer apaixonada por criar arte nas pontas dos dedos. Especializada em gel, fibra de vidro e nail art personalizada que reflete a personalidade única de cada cliente.
+                Nail designer apaixonada por criar arte nas pontas dos dedos. Especializada em alongamentos em gel, banho de gel, esmaltação e nail art personalizada que reflete a personalidade única de cada cliente.
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-                {['Gel UV', 'Fibra', 'Nail Art', 'Esmaltação'].map((tag) => (
+                {['Gel na Tips', 'Banho de Gel', 'Nail Art', 'Esmaltação'].map((tag) => (
                   <span key={tag} style={{ background: '#FFD6ED', color: '#B94FA0', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
                 ))}
               </div>
@@ -255,80 +242,6 @@ export default function Home() {
                 Ver perfil da Malu →
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── SERVIÇOS & PREÇOS ─────────────────────────────────────────── */}
-      <section className="home-section home-services-preview" style={{ background: '#2D0820', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, background: 'radial-gradient(circle, rgba(196,168,232,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 300, height: 300, background: 'radial-gradient(circle, rgba(224,25,138,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
-
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
-            <span className="section-label" style={{ background: 'rgba(196,168,232,0.15)', borderColor: 'rgba(196,168,232,0.3)', color: '#C4A8E8' }}>Serviços & Preços</span>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: 'white', margin: '16px 0 12px' }}>
-              Tudo que você <span style={{ color: '#E0198A' }}>merece</span>
-            </h2>
-            <p style={{ fontFamily: "'Nunito', sans-serif", color: 'rgba(251,240,248,0.6)', fontSize: '1rem', maxWidth: 460, margin: '0 auto' }}>
-              Serviços premium com materiais de alta qualidade e técnicas que garantem resultado e conforto.
-            </p>
-          </div>
-
-          {/* Cílios */}
-          <div style={{ marginBottom: 60 }}>
-            <div className="reveal" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
-              <div style={{ width: 40, height: 40, background: 'rgba(196,168,232,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>✦</div>
-              <div>
-                <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.5rem', fontWeight: 700, color: '#C4A8E8', margin: 0 }}>Cílios — Carol</p>
-                <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.5)', margin: 0 }}>Extensão e volume</p>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-              {SERVICES_CILIOS.map((s, i) => (
-                <div key={s.name} className="reveal" style={{ animationDelay: `${i * 0.1}s`, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(196,168,232,0.15)', borderRadius: 20, padding: '24px 20px', transition: 'all 0.3s ease', cursor: 'default' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(196,168,232,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(196,168,232,0.4)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(196,168,232,0.15)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.05rem', color: 'white', margin: 0 }}>{s.name}</p>
-                    <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.05rem', color: '#C4A8E8', margin: 0, flexShrink: 0 }}>{s.price}</p>
-                  </div>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.55)', margin: '0 0 12px', lineHeight: 1.5 }}>{s.desc}</p>
-                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', color: '#C4A8E8', background: 'rgba(196,168,232,0.1)', padding: '3px 10px', borderRadius: 50, border: '1px solid rgba(196,168,232,0.2)' }}>⏱ {s.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Unhas */}
-          <div>
-            <div className="reveal" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
-              <div style={{ width: 40, height: 40, background: 'rgba(224,25,138,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>♡</div>
-              <div>
-                <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.5rem', fontWeight: 700, color: '#E0198A', margin: 0 }}>Unhas — Malu</p>
-                <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.5)', margin: 0 }}>Nail art & alongamentos</p>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-              {SERVICES_UNHAS.map((s, i) => (
-                <div key={s.name} className="reveal" style={{ animationDelay: `${i * 0.1}s`, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(224,25,138,0.15)', borderRadius: 20, padding: '24px 20px', transition: 'all 0.3s ease', cursor: 'default' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(224,25,138,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(224,25,138,0.4)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(224,25,138,0.15)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.05rem', color: 'white', margin: 0 }}>{s.name}</p>
-                    <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.05rem', color: '#E0198A', margin: 0, flexShrink: 0, textAlign: 'right', fontSize: '0.9rem' }}>{s.price}</p>
-                  </div>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.55)', margin: '0 0 12px', lineHeight: 1.5 }}>{s.desc}</p>
-                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', color: '#E0198A', background: 'rgba(224,25,138,0.1)', padding: '3px 10px', borderRadius: 50, border: '1px solid rgba(224,25,138,0.2)' }}>⏱ {s.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="reveal" style={{ textAlign: 'center', marginTop: 48 }}>
-            <Link to="/servicos" className="btn-pink">Ver todos os serviços →</Link>
           </div>
         </div>
       </section>
