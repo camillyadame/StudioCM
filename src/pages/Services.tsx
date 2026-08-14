@@ -12,18 +12,33 @@ import maluG2 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.48.jpeg'
 import maluG3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
 import maluG4 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.17.jpeg'
 
-function useReveal(ref: React.RefObject<HTMLElement | null>) {
+function useReveal(ref: React.RefObject<HTMLElement | null>, dependency?: unknown) {
   useEffect(() => {
     const root = ref.current
     if (!root) return
+
     const targets = root.querySelectorAll('.reveal, .reveal-left, .reveal-right')
+
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible')
+            obs.unobserve(e.target)
+          }
+        })
+      },
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     )
-    targets.forEach((t) => obs.observe(t))
+
+    targets.forEach((t) => {
+      if (!t.classList.contains('visible')) {
+        obs.observe(t)
+      }
+    })
+
     return () => obs.disconnect()
-  }, [])
+  }, [dependency, ref])
 }
 
 const CILIOS_APLICACOES = [
@@ -68,8 +83,8 @@ const ALL_SERVICES = {
 
 export default function Services() {
   const ref = useRef<HTMLDivElement>(null)
-  useReveal(ref)
   const [tab, setTab] = useState<'cilios' | 'unhas'>('cilios')
+  useReveal(ref, tab)
 
   const activeColor = tab === 'cilios' ? '#7B2FBE' : '#E0198A'
   const activeBg = tab === 'cilios' ? '#E8DAFF' : '#FFD6ED'
