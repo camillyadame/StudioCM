@@ -75,9 +75,13 @@ const SPECIALISTS = [
     icon: '♡',
     services: [
       'Alongamento Gel na Tips — Simples / Decoração simples',
+      'Manutenção Alongamento Gel na Tips — Simples / Decoração simples',
       'Alongamento Gel na Tips — Nail Art / Decorações 3D',
+      'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D',
       'Banho de Gel — Simples / Decoração simples',
+      'Manutenção Banho de Gel — Simples / Decoração simples',
       'Banho de Gel — Nail Art / Decoração 3D',
+      'Manutenção Banho de Gel — Nail Art / Decoração 3D',
       'Postiça Realista — Simples / Decoração simples',
       'Postiça Realista — Nail Art / Decoração 3D',
       'Esmaltação em Gel nas Unhas Naturais',
@@ -92,7 +96,7 @@ const WHATSAPP_NUMBERS: Record<SpecialistId, string> = { carol: '5518981541288',
 
 const SERVICE_PRICES: Record<SpecialistId, Record<string, number>> = {
   carol: {'Volume Light':100,'Volume Brasileiro':120,'Volume 4D':135,'Volume Árabe':140,'Volume 6D':150,Fox:155,Capping:185,'Manutenção Light':70,'Manutenção Brasileiro':80,'Manutenção 4D e Árabe':85,'Manutenção 6D':95,'Manutenção Fox':100,'Manutenção Capping':115,'Design de Sobrancelha':25,Buço:15},
-  malu: {'Alongamento Gel na Tips — Simples / Decoração simples':110,'Alongamento Gel na Tips — Nail Art / Decorações 3D':130,'Banho de Gel — Simples / Decoração simples':90,'Banho de Gel — Nail Art / Decoração 3D':95,'Postiça Realista — Simples / Decoração simples':60,'Postiça Realista — Nail Art / Decoração 3D':70,'Esmaltação em Gel nas Unhas Naturais':60,'Pedicure e Manicure':110},
+  malu: {'Alongamento Gel na Tips — Simples / Decoração simples':110,'Manutenção Alongamento Gel na Tips — Simples / Decoração simples':90,'Alongamento Gel na Tips — Nail Art / Decorações 3D':130,'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D':110,'Banho de Gel — Simples / Decoração simples':90,'Manutenção Banho de Gel — Simples / Decoração simples':75,'Banho de Gel — Nail Art / Decoração 3D':95,'Manutenção Banho de Gel — Nail Art / Decoração 3D':80,'Postiça Realista — Simples / Decoração simples':60,'Postiça Realista — Nail Art / Decoração 3D':70,'Esmaltação em Gel nas Unhas Naturais':60,'Pedicure e Manicure':110},
 }
 function formatCurrency(value:number){return value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 function getServicePrice(s:string|null,v:string|null){if(!s||!v||(s!=='carol'&&s!=='malu'))return null;return SERVICE_PRICES[s][v]??null}
@@ -156,6 +160,23 @@ export default function Booking() {
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null)
 
   const dates = useMemo(() => generateDates(), [])
+  const selectableDates = useMemo(
+    () =>
+      dates.filter((d) => {
+        const day = d.getDay()
+
+        if (specialist === 'malu') {
+          return day >= 2 && day <= 6
+        }
+
+        if (specialist === 'carol') {
+          return day >= 1 && day <= 6
+        }
+
+        return day !== 0
+      }),
+    [dates, specialist],
+  )
   const selectedSpec = SPECIALISTS.find((s) => s.id === specialist)
   const accentColor = selectedSpec?.color ?? '#E0198A'
   const accentBg = selectedSpec?.bg ?? '#FFD6ED'
@@ -479,7 +500,7 @@ export default function Booking() {
               </h3>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {dates.map((d) => {
+                {selectableDates.map((d) => {
                   const key = toIsoDate(d)
                   const dayName = DAYS[d.getDay()]
                   const dayNum = d.getDate()

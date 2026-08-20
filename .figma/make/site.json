@@ -2,7 +2,7 @@
   "title": "StudioCM | Cílios & Unhas",
   "description": "StudioCM — Especialistas em cílios e unhas. Conheça nossos serviços e agende seu horário.",
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,

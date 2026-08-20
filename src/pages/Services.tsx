@@ -47,8 +47,8 @@ const CILIOS_APLICACOES = [
   { name: 'Volume 4D', price: 'R$ 135,00', icon: '✦', img: imgVolume4D, focus: '50% 32%' },
   { name: 'Volume Árabe', price: 'R$ 140,00', icon: '✦', img: imgVolumeArabe, focus: '50% 32%' },
   { name: 'Volume 6D', price: 'R$ 150,00', icon: '✦', img: imgVolume6D, focus: '55% 24%' },
-  { name: 'Fox', price: 'R$ 155,00', icon: '✦', img: imgFox, focus: '78% 18%' },
-  { name: 'Capping', price: 'R$ 185,00', icon: '✦', img: imgCapping, focus: '72% 28%' },
+  { name: 'Fox', price: 'R$ 155,00', icon: '✦', img: imgFox, focus: '78% 12%' },
+  { name: 'Capping', price: 'R$ 185,00', icon: '✦', img: imgCapping, focus: '50% 68%' },
 ]
 const CILIOS_MANUTENCOES = [
   { name: 'Manutenção Light', price: 'R$ 70,00', icon: '✦' },
