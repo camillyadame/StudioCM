@@ -59,23 +59,32 @@ type BookingBody = {
 const WORK_SCHEDULES: Record<SpecialistId, WeeklySchedule> = {
   carol: {
     0: null,
-    1: { start: '08:00', end: '18:00' },
-    2: { start: '08:00', end: '18:00' },
-    3: { start: '08:00', end: '18:00' },
-    4: { start: '08:00', end: '18:00' },
-    5: { start: '08:00', end: '18:00' },
-    6: { start: '08:00', end: '15:00' },
+    1: { start: '09:00', end: '18:00' },
+    2: { start: '09:00', end: '18:00' },
+    3: { start: '09:00', end: '18:00' },
+    4: { start: '09:00', end: '18:00' },
+    5: { start: '09:00', end: '18:00' },
+    6: { start: '09:00', end: '14:00' },
   },
-
   malu: {
     0: null,
-    1: { start: '08:00', end: '20:00' },
-    2: { start: '08:00', end: '20:00' },
-    3: { start: '08:00', end: '20:00' },
-    4: { start: '08:00', end: '20:00' },
-    5: { start: '08:00', end: '20:00' },
-    6: { start: '09:00', end: '15:00' },
+    1: null,
+    2: { start: '09:00', end: '18:00' },
+    3: { start: '09:00', end: '18:00' },
+    4: { start: '09:00', end: '18:00' },
+    5: { start: '09:00', end: '18:00' },
+    6: { start: '08:00', end: '13:00' },
   },
+}
+
+const MALU_FIXED_START_TIMES: Record<number, string[]> = {
+  0: [],
+  1: [],
+  2: ['09:00', '11:00', '14:00', '16:00'],
+  3: ['09:00', '11:00', '14:00', '16:00'],
+  4: ['09:00', '11:00', '14:00', '16:00'],
+  5: ['09:00', '11:00', '14:00', '16:00'],
+  6: ['08:00', '10:00'],
 }
 
 const SERVICE_DURATIONS: Record<
@@ -104,9 +113,13 @@ const SERVICE_DURATIONS: Record<
 
   malu: {
     'Alongamento Gel na Tips — Simples / Decoração simples': 135,
+    'Manutenção Alongamento Gel na Tips — Simples / Decoração simples': 120,
     'Alongamento Gel na Tips — Nail Art / Decorações 3D': 180,
+    'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D': 120,
     'Banho de Gel — Simples / Decoração simples': 120,
+    'Manutenção Banho de Gel — Simples / Decoração simples': 120,
     'Banho de Gel — Nail Art / Decoração 3D': 120,
+    'Manutenção Banho de Gel — Nail Art / Decoração 3D': 120,
     'Postiça Realista — Simples / Decoração simples': 120,
     'Postiça Realista — Nail Art / Decoração 3D': 120,
     'Esmaltação em Gel nas Unhas Naturais': 120,
@@ -318,14 +331,23 @@ app.get('/api/availability', async (req, res) => {
     const startMinutes = timeToMinutes(workDay.start)
     const endMinutes = timeToMinutes(workDay.end)
 
+    const candidateTimes: string[] = []
+
+    if (specialist === 'malu') {
+      candidateTimes.push(...(MALU_FIXED_START_TIMES[dayOfWeek] ?? []))
+    } else {
+      for (
+        let current = startMinutes;
+        current + duration <= endMinutes;
+        current += SLOT_INTERVAL_MINUTES
+      ) {
+        candidateTimes.push(minutesToTime(current))
+      }
+    }
+
     const availableTimes: string[] = []
 
-    for (
-      let current = startMinutes;
-      current + duration <= endMinutes;
-      current += SLOT_INTERVAL_MINUTES
-    ) {
-      const time = minutesToTime(current)
+    for (const time of candidateTimes) {
       const appointmentStart = localDateTime(date, time)
       const appointmentEnd = new Date(
         appointmentStart.getTime() + duration * 60_000,
@@ -438,7 +460,16 @@ app.post('/api/bookings', async (req, res) => {
     const workStart = localDateTime(date, workDay.start)
     const workEnd = localDateTime(date, workDay.end)
 
-    if (
+    if (specialist === 'malu') {
+      const allowedTimes = MALU_FIXED_START_TIMES[dayOfWeek] ?? []
+
+      if (!allowedTimes.includes(time)) {
+        return res.status(400).json({
+          ok: false,
+          message: 'Este não é um horário de início válido para a Malu.',
+        })
+      }
+    } else if (
       appointmentStart < workStart ||
       appointmentEnd > workEnd
     ) {
