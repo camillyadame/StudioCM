@@ -1,720 +1,430 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import maluNail1 from '@/imports/malu-nail-designer.png'
+import maluNail2 from '@/imports/malu-nail-designer-1.png'
+import maluNail3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
+import maluNail4 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
+import carolCard from '@/imports/carol-lash-designer-v2.png'
+import carolBg from '@/imports/carol-lash-designer-v2-1.png'
+import carolGal1 from '@/imports/Captura_de_tela_de_2026-08-12_15-42-29.png'
+import carolGal2 from '@/imports/WhatsApp_Image_2026-08-11_at_22.18.33-1.jpeg'
 
-type Step = 1 | 2 | 3 | 4
-
-type AvailabilityResponse = {
-  ok: boolean
-  specialist?: string
-  service?: string
-  date?: string
-  durationMinutes?: number
-  workHours?: {
-    start: string
-    end: string
-  }
-  availableTimes?: string[]
-  reason?: string
-  message?: string
+function useReveal(rootRef?: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const root = rootRef?.current ?? document
+    const targets = root.querySelectorAll('.reveal, .reveal-left, .reveal-right')
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    )
+    targets.forEach((t) => observer.observe(t))
+    return () => observer.disconnect()
+  }, [])
 }
 
-type BookingResponse = {
-  ok: boolean
-  message?: string
-  code?: string
-  booking?: {
-    eventId?: string | null
-    specialist: string
-    specialistName: string
-    service: string
-    date: string
-    time: string
-    durationMinutes: number
-    customerName: string
-    status: string
-  }
-}
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
-
-const SPECIALISTS = [
-  {
-    id: 'carol',
-    name: 'Carol',
-    role: 'Lash Designer',
-    specialty: 'Extensão de Cílios',
-    color: '#7B2FBE',
-    bg: '#E8DAFF',
-    icon: '✦',
-    services: [
-      'Volume Light',
-      'Volume Brasileiro',
-      'Volume 4D',
-      'Volume Árabe',
-      'Volume 6D',
-      'Fox',
-      'Capping',
-      'Manutenção Light',
-      'Manutenção Brasileiro',
-      'Manutenção 4D e Árabe',
-      'Manutenção 6D',
-      'Manutenção Fox',
-      'Manutenção Capping',
-      'Design de Sobrancelha',
-      'Buço',
-    ],
-  },
-  {
-    id: 'malu',
-    name: 'Malu',
-    role: 'Nail Designer',
-    specialty: 'Unhas & Nail Art',
-    color: '#E0198A',
-    bg: '#FFD6ED',
-    icon: '♡',
-    services: [
-      'Alongamento Gel na Tips — Simples / Decoração simples',
-      'Manutenção Alongamento Gel na Tips — Simples / Decoração simples',
-      'Alongamento Gel na Tips — Nail Art / Decorações 3D',
-      'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D',
-      'Banho de Gel — Simples / Decoração simples',
-      'Manutenção Banho de Gel — Simples / Decoração simples',
-      'Banho de Gel — Nail Art / Decoração 3D',
-      'Manutenção Banho de Gel — Nail Art / Decoração 3D',
-      'Postiça Realista — Simples / Decoração simples',
-      'Postiça Realista — Nail Art / Decoração 3D',
-      'Esmaltação em Gel nas Unhas Naturais',
-      'Pedicure e Manicure',
-    ],
-  },
+const TESTIMONIALS = [
+  { name: 'Ana Luíza', role: 'Cliente há 1 ano', text: 'A Carol transformou meu olhar! Cada sessão é um mimo e os resultados duram muito mais do que eu esperava. Recomendo de olhos fechados! 🪄', avatar: '👩🏽', color: '#E8DAFF' },
+  { name: 'Bianca Torres', role: 'Cliente há 8 meses', text: 'As unhas da Malu são obras de arte. Ela entende exatamente o que você quer, mesmo quando você não sabe explicar. Studio CM é outro nível!', avatar: '👩🏻', color: '#FFD6ED' },
+  { name: 'Camila Reis', role: 'Cliente há 2 anos', text: 'Meu ritual mensal favorito é visitar o StudioCM. Ambiente aconchegante, atendimento impecável e resultados que me fazem sentir a melhor versão de mim.', avatar: '👩🏾', color: '#E8DAFF' },
+  { name: 'Fernanda Luz', role: 'Cliente há 6 meses', text: 'Indico para todas as minhas amigas! A qualidade dos materiais é outra e o resultado fica perfeito por semanas. Vale cada centavo.', avatar: '👩🏼', color: '#FFD6ED' },
 ]
 
-type SpecialistId = 'carol' | 'malu'
+const PROMOS = [
+  { title: 'Primeira Visita', desc: 'Ganhe 20% de desconto no seu primeiro serviço', code: 'PRIMEIRAVEZ', color: '#E0198A', badge: 'NOVIDADE' },
+  { title: 'Cílios + Unhas', desc: 'Combo completo com 15% off nos dois serviços', code: 'COMBO15', color: '#B94FA0', badge: 'MAIS PEDIDO' },
+  { title: 'Indique e Ganhe', desc: 'Traga uma amiga e ganhe R$10 de crédito', code: 'AMIGA10', color: '#7B2FBE', badge: 'FIDELIDADE' },
+]
 
-const WHATSAPP_NUMBERS: Record<SpecialistId, string> = { carol: '5518981541288', malu: '5518997116620' }
-
-const SERVICE_PRICES: Record<SpecialistId, Record<string, number>> = {
-  carol: {'Volume Light':100,'Volume Brasileiro':120,'Volume 4D':135,'Volume Árabe':140,'Volume 6D':150,Fox:155,Capping:185,'Manutenção Light':70,'Manutenção Brasileiro':80,'Manutenção 4D e Árabe':85,'Manutenção 6D':95,'Manutenção Fox':100,'Manutenção Capping':115,'Design de Sobrancelha':25,Buço:15},
-  malu: {'Alongamento Gel na Tips — Simples / Decoração simples':110,'Manutenção Alongamento Gel na Tips — Simples / Decoração simples':90,'Alongamento Gel na Tips — Nail Art / Decorações 3D':130,'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D':110,'Banho de Gel — Simples / Decoração simples':90,'Manutenção Banho de Gel — Simples / Decoração simples':75,'Banho de Gel — Nail Art / Decoração 3D':95,'Manutenção Banho de Gel — Nail Art / Decoração 3D':80,'Postiça Realista — Simples / Decoração simples':60,'Postiça Realista — Nail Art / Decoração 3D':70,'Esmaltação em Gel nas Unhas Naturais':60,'Pedicure e Manicure':110},
-}
-function formatCurrency(value:number){return value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-function getServicePrice(s:string|null,v:string|null){if(!s||!v||(s!=='carol'&&s!=='malu'))return null;return SERVICE_PRICES[s][v]??null}
-function getDepositValue(s:string|null,p:number|null){if(!s||p===null)return null;return s==='carol'?Math.round(p*30)/100:30}
-
-const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-
-function generateDates() {
-  const dates: Date[] = []
-  const today = new Date()
-
-  for (let i = 1; i <= 14; i++) {
-    const d = new Date(today)
-    d.setDate(today.getDate() + i)
-
-    if (d.getDay() !== 0) {
-      dates.push(d)
-    }
-  }
-
-  return dates
-}
-
-function toIsoDate(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-
-  return `${year}-${month}-${day}`
-}
-
-function formatDatePtBr(date: string | null) {
-  if (!date) return ''
-
-  const [year, month, day] = date.split('-').map(Number)
-  const localDate = new Date(year, month - 1, day)
-
-  return localDate.toLocaleDateString('pt-BR')
-}
-
-export default function Booking() {
-  const [step, setStep] = useState<Step>(1)
-  const [specialist, setSpecialist] = useState<string | null>(null)
-  const [service, setService] = useState<string | null>(null)
-  const [date, setDate] = useState<string | null>(null)
-  const [time, setTime] = useState<string | null>(null)
-  const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    notes: '',
-  })
-  const [done, setDone] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-
-  const [availableTimes, setAvailableTimes] = useState<string[]>([])
-  const [loadingTimes, setLoadingTimes] = useState(false)
-  const [availabilityError, setAvailabilityError] = useState<string | null>(null)
-  const [availabilityReason, setAvailabilityReason] = useState<string | null>(null)
-  const [durationMinutes, setDurationMinutes] = useState<number | null>(null)
-
-  const dates = useMemo(() => generateDates(), [])
-  const selectableDates = useMemo(
-    () =>
-      dates.filter((d) => {
-        const day = d.getDay()
-        if (specialist === 'malu') return day >= 2 && day <= 6
-        if (specialist === 'carol') return day >= 1 && day <= 6
-        return day !== 0
-      }),
-    [dates, specialist],
+function Sparkle({ style }: { style?: React.CSSProperties }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style={{ ...style, animation: 'sparkle 2.5s ease-in-out infinite' }}>
+      <path d="M10 0 L11.5 8.5 L20 10 L11.5 11.5 L10 20 L8.5 11.5 L0 10 L8.5 8.5 Z" />
+    </svg>
   )
-  const selectedSpec = SPECIALISTS.find((s) => s.id === specialist)
-  const accentColor = selectedSpec?.color ?? '#E0198A'
-  const accentBg = selectedSpec?.bg ?? '#FFD6ED'
-  const servicePrice = getServicePrice(specialist, service)
-  const depositValue = getDepositValue(specialist, servicePrice)
-  const remainingValue = servicePrice !== null && depositValue !== null ? Math.max(servicePrice - depositValue, 0) : null
-  const whatsappMessage = useMemo(() => {
-    if (!done || !specialist || !service || !date || !time || depositValue === null) return ''
-    return [
-      'Olá! Fiz uma pré-reserva pelo site do StudioCM ♡','',
-      `Profissional: ${specialist === 'carol' ? 'Carol' : 'Malu'}`,
-      `Serviço: ${service}`,
-      servicePrice !== null ? `Valor do procedimento: ${formatCurrency(servicePrice)}` : null,
-      `Sinal para confirmação: ${formatCurrency(depositValue)}`,
-      `Data: ${formatDatePtBr(date)}`, `Horário: ${time}`,
-      `Cliente: ${form.name}`, `WhatsApp da cliente: ${form.phone}`,
-      form.notes ? `Observações: ${form.notes}` : null,'',
-      'Vou enviar o comprovante do sinal por aqui para confirmar meu agendamento.',
-    ].filter(Boolean).join('\n')
-  }, [done,specialist,service,date,time,depositValue,servicePrice,form.name,form.phone,form.notes])
-  const whatsappUrl = specialist === 'carol' || specialist === 'malu'
-    ? `https://wa.me/${WHATSAPP_NUMBERS[specialist]}?text=${encodeURIComponent(whatsappMessage)}` : '#'
+}
 
-  const canNext =
-    (step === 1 && Boolean(specialist && service)) ||
-    (step === 2 && Boolean(date && time)) ||
-    (step === 3 && Boolean(form.name && form.phone))
+export default function Home() {
+  const pageRef = useRef<HTMLDivElement>(null)
+  useReveal(pageRef)
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
-  useEffect(() => {
-    setDate(null)
-    setTime(null)
-    setAvailableTimes([])
-    setAvailabilityError(null)
-    setAvailabilityReason(null)
-    setDurationMinutes(null)
-  }, [specialist, service])
-
-  useEffect(() => {
-    setTime(null)
-    setAvailableTimes([])
-    setAvailabilityError(null)
-    setAvailabilityReason(null)
-    setDurationMinutes(null)
-
-    if (!specialist || !service || !date) return
-
-    const controller = new AbortController()
-
-    const loadAvailability = async () => {
-      setLoadingTimes(true)
-
-      try {
-        const params = new URLSearchParams({
-          specialist,
-          service,
-          date,
-        })
-
-        const response = await fetch(
-          `${API_BASE_URL}/api/availability?${params.toString()}`,
-          { signal: controller.signal },
-        )
-
-        const data = (await response.json()) as AvailabilityResponse
-
-        if (!response.ok || !data.ok) {
-          throw new Error(data.message ?? 'Não foi possível consultar os horários.')
-        }
-
-        setAvailableTimes(data.availableTimes ?? [])
-        setAvailabilityReason(data.reason ?? null)
-        setDurationMinutes(data.durationMinutes ?? null)
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') return
-
-        console.error('Erro ao carregar disponibilidade:', error)
-
-        setAvailabilityError(
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível consultar os horários disponíveis.',
-        )
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoadingTimes(false)
-        }
-      }
-    }
-
-    void loadAvailability()
-
-    return () => controller.abort()
-  }, [specialist, service, date])
-
-  const handleSubmit = async () => {
-    if (
-      !specialist ||
-      !service ||
-      !date ||
-      !time ||
-      !form.name ||
-      !form.phone
-    ) {
-      return
-    }
-
-    setSubmitting(true)
-    setSubmitError(null)
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          specialist,
-          service,
-          date,
-          time,
-          name: form.name,
-          phone: form.phone,
-          email: form.email,
-          notes: form.notes,
-        }),
-      })
-
-      const data = (await response.json()) as BookingResponse
-
-      if (!response.ok || !data.ok) {
-        if (response.status === 409 || data.code === 'TIME_UNAVAILABLE') {
-          setStep(2)
-          setTime(null)
-          setAvailableTimes([])
-          setAvailabilityError(
-            data.message ??
-              'Esse horário acabou de ficar indisponível. Escolha outro horário.',
-          )
-          return
-        }
-
-        throw new Error(
-          data.message ?? 'Não foi possível criar a pré-reserva.',
-        )
-      }
-
-      setDone(true)
-    } catch (error) {
-      console.error('Erro ao criar pré-reserva:', error)
-
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível criar a pré-reserva.',
-      )
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  if (done) {
-    return (
-      <div style={{ paddingTop: 70, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '100px 24px', textAlign: 'center' }}>
-        <div style={{ maxWidth: 520 }}>
-          <div style={{ fontSize: '4rem', marginBottom: 24 }} className="animate-float">🎉</div>
-          <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '2.5rem', color: '#2D0820', margin: '0 0 16px' }}>
-            Pré-reserva criada! ♡
-          </h2>
-
-          <div style={{ background: 'white', borderRadius: 24, padding: '28px', border: '2px solid #E8DAFF', margin: '24px 0', textAlign: 'left' }}>
-            {[
-              { label: 'Especialista', value: `${selectedSpec?.name} — ${selectedSpec?.role}` },
-              { label: 'Serviço', value: service },
-              { label: 'Data', value: formatDatePtBr(date) },
-              { label: 'Horário', value: time },
-              { label: 'Cliente', value: form.name },
-            ].map((row) => (
-              <div key={row!.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F5EEFF', gap: 12 }}>
-                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.9rem', color: '#8B5A7A' }}>{row!.label}</span>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', fontWeight: 600, textAlign: 'right' }}>{row!.value}</span>
-              </div>
-            ))}
-          </div>
-
-          <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', marginBottom: 32 }}>
-            Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Qualquer dúvida, nos chame no WhatsApp! 💕
-          </p>
-
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/" className="btn-pink">Voltar para início ♡</Link>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              Enviar comprovante pelo WhatsApp →
-            </a>
-          </div>
-        </div>
-      </div>
-    )
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(code)
+    setTimeout(() => setCopiedCode(null), 2000)
   }
 
   return (
-    <div style={{ paddingTop: 70 }}>
-      <section style={{ background: 'linear-gradient(135deg, #2D0820, #4D1060)', padding: '60px 24px 40px', textAlign: 'center' }}>
-        <div className="animate-fade-up">
-          <span style={{ background: 'rgba(196,168,232,0.2)', border: '1px solid rgba(196,168,232,0.4)', color: '#C4A8E8', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '5px 14px', borderRadius: 50, display: 'inline-block', marginBottom: 16 }}>
-            ♡ Agendamento
-          </span>
+    <div ref={pageRef}>
+      {/* ─── HERO ──────────────────────────────────────────────────────── */}
+      <section className="home-hero" style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', overflow: 'hidden', paddingTop: 70 }}>
+        {/* BG blobs */}
+        <div style={{ position: 'absolute', top: -80, right: -100, width: 500, height: 500, background: 'radial-gradient(circle, rgba(196,168,232,0.35) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -80, width: 400, height: 400, background: 'radial-gradient(circle, rgba(224,25,138,0.12) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '30%', left: '45%', width: 300, height: 300, background: 'radial-gradient(circle, rgba(196,168,232,0.2) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
 
-          <h1 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: 'white', margin: '0 0 32px' }}>
-            Agende seu <span style={{ color: '#E0198A' }}>horário</span>
-          </h1>
+        {/* Floating decoratives */}
+        <div style={{ position: 'absolute', top: 140, right: '8%', color: '#E0198A', opacity: 0.6 }} className="animate-float delay-200">
+          <Sparkle style={{ width: 28, height: 28 }} />
         </div>
+        <div style={{ position: 'absolute', top: 220, right: '22%', color: '#C4A8E8', opacity: 0.5 }} className="animate-float-slow delay-400">
+          <Sparkle style={{ width: 18, height: 18 }} />
+        </div>
+        <div style={{ position: 'absolute', bottom: 180, right: '12%', color: '#B94FA0', opacity: 0.5, fontSize: 24 }} className="animate-float delay-300">♡</div>
+        <div style={{ position: 'absolute', bottom: 260, left: '8%', color: '#C4A8E8', opacity: 0.4, fontSize: 18 }} className="animate-float-slow">✦</div>
 
-        <div className="animate-fade-up delay-200" style={{ display: 'flex', justifyContent: 'center', gap: 0, maxWidth: 480, margin: '0 auto' }}>
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', flex: s < 4 ? 1 : 'none' }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: step >= s ? (step === s ? '#E0198A' : '#C4A8E8') : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: step >= s ? 'white' : 'rgba(255,255,255,0.4)', transition: 'all 0.3s ease', flexShrink: 0 }}>
-                {step > s ? '✓' : s}
-              </div>
-
-              {s < 4 && (
-                <div style={{ flex: 1, height: 2, background: step > s ? '#C4A8E8' : 'rgba(255,255,255,0.15)', transition: 'background 0.3s' }} />
-              )}
+        <div className="home-hero-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center', width: '100%' }}>
+          {/* Left */}
+          <div className="home-hero-copy">
+            <div className="animate-fade-up" style={{ marginBottom: 20 }}>
+              <span className="section-label">✦ Beleza que transforma</span>
             </div>
+
+            <h1 className="animate-fade-up delay-100 home-hero-title" style={{ fontFamily: "'Fredoka One', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, color: '#2D0820', marginBottom: 0 }}>
+              Studio
+            </h1>
+            <h1 className="animate-fade-up delay-200 shimmer-text home-hero-title" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(3.5rem, 6vw, 5.5rem)', lineHeight: 1.05, margin: '0 0 8px' }}>
+              CM ♡
+            </h1>
+            <p className="animate-fade-up delay-300 home-hero-description" style={{ fontFamily: "'Nunito', sans-serif", fontSize: '1.15rem', color: '#8B5A7A', lineHeight: 1.7, marginBottom: 36, maxWidth: 440 }}>
+              Especialistas em cílios e unhas que realçam o que há de mais bonito em você. Arte, cuidado e personalidade em cada detalhe.
+            </p>
+
+            <div className="animate-fade-up delay-400 home-hero-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 48 }}>
+              <Link to="/agendamento" className="btn-pink">Agendar agora ♡</Link>
+              <Link to="/servicos" className="btn-secondary">Ver serviços →</Link>
+            </div>
+
+            {/* Stats */}
+            <div className="animate-fade-up delay-500 home-hero-stats" style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+              {[
+                { n: '+500', label: 'clientes atendidas' },
+                { n: '5 ★', label: 'avaliação média' },
+                { n: '3+', label: 'anos de experiência' },
+              ].map((s) => (
+                <div key={s.n}>
+                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.8rem', fontWeight: 700, color: '#E0198A', margin: 0 }}>{s.n}</p>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#8B5A7A', margin: 0 }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — specialist cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, position: 'relative' }} className="animate-fade-in delay-300 home-specialist-cards">
+            {/* Carol card */}
+            <Link to="/carol" style={{ textDecoration: 'none', gridColumn: '1', marginTop: 32 }} className="animate-float-slow home-specialist-card home-specialist-card-carol">
+              <div style={{ background: 'linear-gradient(145deg, #7B2FBE, #C4A8E8)', borderRadius: 28, overflow: 'hidden', aspectRatio: '3/4', position: 'relative', cursor: 'pointer', boxShadow: '0 20px 50px rgba(123, 47, 190, 0.25)', transition: 'transform 0.3s ease' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
+              >
+                <img
+                  src={carolCard}
+                  alt="Carol — Lash Designer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'luminosity', opacity: 0.85 }}
+                />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(123,47,190,0.9) 0%, transparent 50%)' }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
+                  <p style={{ fontFamily: "'Dancing Script', cursive", fontSize: '1.4rem', color: 'white', margin: 0, lineHeight: 1 }}>Carol</p>
+                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Lash Designer</p>
+                </div>
+                <div style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', borderRadius: 12, padding: '4px 10px' }}>
+                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', color: 'white', fontWeight: 600 }}>CÍLIOS</span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Malu card */}
+            <Link to="/malu" style={{ textDecoration: 'none', gridColumn: '2' }} className="animate-float delay-400 home-specialist-card home-specialist-card-malu">
+              <div style={{ background: 'linear-gradient(145deg, #E0198A, #B94FA0)', borderRadius: 28, overflow: 'hidden', aspectRatio: '3/4', position: 'relative', cursor: 'pointer', boxShadow: '0 20px 50px rgba(224, 25, 138, 0.25)', transition: 'transform 0.3s ease' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
+              >
+                <img
+                  src={maluNail1}
+                  alt="Malu — Nail Designer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', mixBlendMode: 'luminosity', opacity: 0.85 }}
+                />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(185,79,160,0.9) 0%, transparent 50%)' }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px' }}>
+                  <p style={{ fontFamily: "'Dancing Script', cursive", fontSize: '1.4rem', color: 'white', margin: 0, lineHeight: 1 }}>Malu</p>
+                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Nail Designer</p>
+                </div>
+                <div style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', borderRadius: 12, padding: '4px 10px' }}>
+                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', color: 'white', fontWeight: 600 }}>UNHAS</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── MARQUEE STRIP ─────────────────────────────────────────────── */}
+      <div style={{ background: '#2D0820', padding: '14px 0', overflow: 'hidden' }}>
+        <div className="marquee-strip">
+          {Array(8).fill(['✦ Cílios', '♡ Unhas', '✦ Beleza', '♡ Arte', '✦ Studio CM', '♡ Cuidado', '✦ Estilo', '♡ Elegância']).flat().map((item, i) => (
+            <span key={i} style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.95rem', color: i % 2 === 0 ? '#E0198A' : '#C4A8E8', marginRight: 32, whiteSpace: 'nowrap', fontWeight: 600 }}>{item}</span>
           ))}
         </div>
+      </div>
 
-        <div className="animate-fade-up delay-300" style={{ display: 'flex', justifyContent: 'center', gap: 0, maxWidth: 480, margin: '8px auto 0', paddingLeft: 0 }}>
-          {['Serviço', 'Data & Hora', 'Seus dados', 'Confirmar'].map((label, i) => (
-            <div key={label} style={{ flex: i < 3 ? 1 : 'none', textAlign: 'center', minWidth: 36 }}>
-              <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.7rem', color: step >= i + 1 ? 'rgba(251,240,248,0.9)' : 'rgba(251,240,248,0.4)', whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
+      {/* ─── ESPECIALISTAS ─────────────────────────────────────────────── */}
+      <section className="home-section home-specialists-section" style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
+          <span className="section-label">Nossas Especialistas</span>
+          <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 12px' }}>
+            Duas artistas, <span className="gradient-text">uma paixão</span>
+          </h2>
+          <p style={{ fontFamily: "'Nunito', sans-serif", color: '#8B5A7A', fontSize: '1rem', maxWidth: 500, margin: '0 auto' }}>
+            Cada uma com sua especialidade, juntas criam a experiência mais completa de beleza que você já viveu.
+          </p>
+        </div>
+
+        <div className="home-specialists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
+          {/* Carol */}
+          <div className="reveal-left" style={{ background: 'white', borderRadius: 32, overflow: 'hidden', boxShadow: '0 8px 40px rgba(123,47,190,0.1)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-8px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 60px rgba(123,47,190,0.18)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 40px rgba(123,47,190,0.1)'; }}
+          >
+            <div style={{ height: 300, background: 'linear-gradient(135deg, #7B2FBE, #C4A8E8)', position: 'relative', overflow: 'hidden' }}>
+              <img src={carolBg} alt="Carol fazendo cílios" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7, mixBlendMode: 'luminosity' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(123,47,190,0.5), rgba(196,168,232,0.3))' }} />
+              <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: 50, padding: '6px 16px', border: '1px solid rgba(255,255,255,0.3)' }}>
+                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.8rem', color: 'white', fontWeight: 600, letterSpacing: '0.08em' }}>✦ LASH DESIGNER</span>
+              </div>
+            </div>
+            <div style={{ padding: '28px 28px 32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <p style={{ fontFamily: "'Dancing Script', cursive", fontSize: '2rem', color: '#7B2FBE', margin: 0, fontWeight: 700 }}>Carol</p>
+                <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, rgba(123,47,190,0.3), transparent)' }} />
+              </div>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', lineHeight: 1.7, marginBottom: 20 }}>
+                Especialista em extensão de cílios com 3+ anos de experiência. Usa técnicas europeias com materiais hipoalergênicos para um resultado natural e duradouro que vai transformar seu olhar.
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+                {['Volume Russo', 'Clássico', 'Híbrido', 'Mega Volume'].map((tag) => (
+                  <span key={tag} style={{ background: '#E8DAFF', color: '#7B2FBE', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
+                ))}
+              </div>
+              <Link to="/carol" className="btn-primary" style={{ background: '#7B2FBE', display: 'inline-flex' }}>
+                Ver perfil da Carol →
+              </Link>
+            </div>
+          </div>
+
+          {/* Malu */}
+          <div className="reveal-right" style={{ background: 'white', borderRadius: 32, overflow: 'hidden', boxShadow: '0 8px 40px rgba(224,25,138,0.1)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-8px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 60px rgba(224,25,138,0.18)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 40px rgba(224,25,138,0.1)'; }}
+          >
+            <div style={{ height: 300, background: 'linear-gradient(135deg, #E0198A, #B94FA0)', position: 'relative', overflow: 'hidden' }}>
+              <img src={maluNail2} alt="Malu fazendo unhas" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7, mixBlendMode: 'luminosity' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(224,25,138,0.5), rgba(185,79,160,0.3))' }} />
+              <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: 50, padding: '6px 16px', border: '1px solid rgba(255,255,255,0.3)' }}>
+                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.8rem', color: 'white', fontWeight: 600, letterSpacing: '0.08em' }}>♡ NAIL DESIGNER</span>
+              </div>
+            </div>
+            <div style={{ padding: '28px 28px 32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <p style={{ fontFamily: "'Dancing Script', cursive", fontSize: '2rem', color: '#E0198A', margin: 0, fontWeight: 700 }}>Malu</p>
+                <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, rgba(224,25,138,0.3), transparent)' }} />
+              </div>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', lineHeight: 1.7, marginBottom: 20 }}>
+                Nail designer apaixonada por criar arte nas pontas dos dedos. Especializada em alongamentos em gel, banho de gel, esmaltação e nail art personalizada que reflete a personalidade única de cada cliente.
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+                {['Gel na Tips', 'Banho de Gel', 'Nail Art', 'Esmaltação'].map((tag) => (
+                  <span key={tag} style={{ background: '#FFD6ED', color: '#B94FA0', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
+                ))}
+              </div>
+              <Link to="/malu" className="btn-pink" style={{ display: 'inline-flex' }}>
+                Ver perfil da Malu →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── GALERIA ───────────────────────────────────────────────────── */}
+      <section className="home-section home-gallery-section" style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
+        <div className="reveal home-gallery-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 20, marginBottom: 48 }}>
+          <div>
+            <span className="section-label">Galeria</span>
+            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 0' }}>
+              Nossa <span className="gradient-text">arte</span>
+            </h2>
+          </div>
+          <Link to="/galeria" className="btn-secondary">Ver galeria completa →</Link>
+        </div>
+
+        <div className="home-gallery-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'auto auto', gap: 16 }}>
+          {[
+            { url: carolGal1, span: 'none', alt: 'Cílios volumosos' },
+            { url: maluNail3, span: 'none', alt: 'Unhas decoradas' },
+            { url: maluNail4, span: '1 / span 2', alt: 'Nail art Malu' },
+            { url: carolGal2, span: 'none', alt: 'Maquiagem olhos' },
+          ].map((img, i) => (
+            <div key={i} className="reveal" style={{ borderRadius: 20, overflow: 'hidden', aspectRatio: i === 2 ? '16/9' : '1', gridColumn: img.span !== 'none' ? img.span : undefined, cursor: 'pointer', position: 'relative', transition: 'transform 0.3s ease' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+            >
+              <img src={img.url} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.5s ease' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.08)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(45,8,32,0.4) 0%, transparent 60%)', opacity: 0, transition: 'opacity 0.3s' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0'; }}
+              />
             </div>
           ))}
         </div>
       </section>
 
-      <section style={{ padding: '60px 24px 100px', maxWidth: 780, margin: '0 auto' }}>
-        {step === 1 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Escolha a especialista e o serviço
+      {/* ─── PROMOÇÕES ─────────────────────────────────────────────────── */}
+      <section className="home-section home-promos-section" style={{ background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF)', padding: '100px 24px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
+            <span className="section-label">Promoções & Cupons</span>
+            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 12px' }}>
+              Ofertas <span className="gradient-text">especiais</span> pra você
             </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 32 }}>
-              {SPECIALISTS.map((sp) => (
-                <button
-                  key={sp.id}
-                  onClick={() => {
-                    setSpecialist(sp.id)
-                    setService(null)
-                  }}
-                  style={{ background: specialist === sp.id ? sp.bg : 'white', border: `2px solid ${specialist === sp.id ? sp.color : 'rgba(196,168,232,0.2)'}`, borderRadius: 20, padding: '24px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.3s ease', transform: specialist === sp.id ? 'scale(1.02)' : 'scale(1)' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div style={{ width: 44, height: 44, background: sp.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', color: sp.color, border: `2px solid ${sp.color}30` }}>
-                      {sp.icon}
-                    </div>
-
-                    <div>
-                      <p style={{ fontFamily: "'Dancing Script', cursive", fontSize: '1.4rem', color: sp.color, margin: 0, fontWeight: 700 }}>{sp.name}</p>
-                      <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', color: '#8B5A7A', margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{sp.role}</p>
-                    </div>
-                  </div>
-
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#5A3050', margin: 0 }}>{sp.specialty}</p>
-                </button>
-              ))}
-            </div>
-
-            {specialist && (
-              <div>
-                <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '16px 20px', marginBottom: 24 }}>
-                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 6px' }}>
-                    {selectedSpec?.id === 'carol' ? '✦ Confirmação de agendamento — Carol' : '♡ Confirmação de agendamento — Malu'}
-                  </p>
-
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
-                    {selectedSpec?.id === 'carol'
-                      ? 'Para confirmar seu agendamento com a Carol, é necessário o pagamento antecipado de um sinal correspondente a 30% do valor do procedimento escolhido.'
-                      : 'Para confirmar seu agendamento com a Malu, é necessário o pagamento antecipado de um sinal fixo de R$ 30,00.'}
-                  </p>
-                </div>
-
-                <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>
-                  Selecione o serviço:
-                </h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-                  {selectedSpec?.services.map((sv) => (
-                    <button
-                      key={sv}
-                      onClick={() => setService(sv)}
-                      style={{ background: service === sv ? accentBg : 'white', border: `1.5px solid ${service === sv ? accentColor : 'rgba(196,168,232,0.25)'}`, borderRadius: 12, padding: '12px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: service === sv ? accentColor : '#2D0820', transition: 'all 0.2s ease' }}
-                    >
-                      {selectedSpec.icon} {sv}
-                    </button>
-                  ))}
-                </div>
-                {service && servicePrice !== null && depositValue !== null && (
-                  <div style={{ background:'white', border:`1.5px solid ${accentColor}30`, borderRadius:16, padding:'16px 20px', marginTop:20 }}>
-                    <p style={{ fontFamily:"'Fredoka', sans-serif", fontWeight:700, color:accentColor, margin:'0 0 8px' }}>Valor e sinal</p>
-                    <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:'0 0 4px' }}>Procedimento: <strong>{formatCurrency(servicePrice)}</strong></p>
-                    <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:0 }}>Sinal para reservar: <strong>{formatCurrency(depositValue)}</strong>{selectedSpec?.id === 'carol' ? ' (30%)' : ' (valor fixo)'}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Escolha a data e horário
-            </h2>
-
-            <div style={{ marginBottom: 32 }}>
-              <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>
-                Data:
-              </h3>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {selectableDates.map((d) => {
-                  const key = toIsoDate(d)
-                  const dayName = DAYS[d.getDay()]
-                  const dayNum = d.getDate()
-
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setDate(key)}
-                      style={{ background: date === key ? accentColor : 'white', border: `1.5px solid ${date === key ? accentColor : 'rgba(196,168,232,0.3)'}`, borderRadius: 12, padding: '10px 16px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s ease', minWidth: 70 }}
-                    >
-                      <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.7rem', color: date === key ? 'rgba(255,255,255,0.8)' : '#8B5A7A', margin: '0 0 2px', fontWeight: 600, textTransform: 'uppercase' }}>
-                        {dayName}
-                      </p>
-
-                      <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.3rem', fontWeight: 700, color: date === key ? 'white' : '#2D0820', margin: 0 }}>
-                        {dayNum}
-                      </p>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div>
-              <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>
-                Horário:
-              </h3>
-
-              {!date && (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0 }}>
-                    Escolha uma data para consultar os horários disponíveis.
-                  </p>
-                </div>
-              )}
-
-              {date && loadingTimes && (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0 }}>
-                    Consultando a agenda da {selectedSpec?.name}...
-                  </p>
-                </div>
-              )}
-
-              {date && availabilityError && !loadingTimes && (
-                <div style={{ background: '#FFF3F7', border: '1.5px solid rgba(224,25,138,0.25)', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#A52B68', margin: 0, lineHeight: 1.5 }}>
-                    {availabilityError}
-                  </p>
-                </div>
-              )}
-
-              {date && !loadingTimes && !availabilityError && availableTimes.length === 0 && (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0, lineHeight: 1.5 }}>
-                    {availabilityReason ?? 'Não há horários disponíveis nesta data. Escolha outro dia ♡'}
-                  </p>
-                </div>
-              )}
-
-              {date && !loadingTimes && !availabilityError && availableTimes.length > 0 && (
-                <>
-                  {durationMinutes && (
-                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A', margin: '0 0 14px' }}>
-                      Os horários abaixo já consideram a duração do procedimento e os compromissos existentes na agenda.
-                    </p>
-                  )}
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                    {availableTimes.map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTime(t)}
-                        style={{ background: time === t ? accentColor : 'white', border: `1.5px solid ${time === t ? accentColor : 'rgba(196,168,232,0.3)'}`, borderRadius: 12, padding: '10px 18px', cursor: 'pointer', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.95rem', color: time === t ? 'white' : '#2D0820', transition: 'all 0.2s ease' }}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Seus dados
-            </h2>
-
-            <div style={{ display: 'grid', gap: 16 }}>
-              {[
-                { key: 'name', label: 'Nome completo *', placeholder: 'Como posso te chamar?', type: 'text' },
-                { key: 'phone', label: 'WhatsApp *', placeholder: '(18) 99999-9999', type: 'tel' },
-                { key: 'email', label: 'E-mail', placeholder: 'seu@email.com', type: 'email' },
-              ].map((f) => (
-                <div key={f.key}>
-                  <label style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: '#2D0820', display: 'block', marginBottom: 8 }}>
-                    {f.label}
-                  </label>
-
-                  <input
-                    type={f.type}
-                    placeholder={f.placeholder}
-                    value={form[f.key as keyof typeof form]}
-                    onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, border: '1.5px solid rgba(196,168,232,0.4)', fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#2D0820', background: 'white', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = accentColor)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(196,168,232,0.4)')}
-                  />
-                </div>
-              ))}
-
-              <div>
-                <label style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: '#2D0820', display: 'block', marginBottom: 8 }}>
-                  Observações
-                </label>
-
-                <textarea
-                  placeholder="Alguma alergia, preferência ou informação especial?"
-                  value={form.notes}
-                  onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                  style={{ width: '100%', padding: '14px 18px', borderRadius: 14, border: '1.5px solid rgba(196,168,232,0.4)', fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#2D0820', background: 'white', outline: 'none', resize: 'vertical', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = accentColor)}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(196,168,232,0.4)')}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Confirme seu agendamento
-            </h2>
-
-            <div style={{ background: 'white', borderRadius: 24, padding: '28px', border: `2px solid ${accentBg}`, marginBottom: 24 }}>
-              {[
-                { label: 'Especialista', value: `${selectedSpec?.name} — ${selectedSpec?.role}` },
-                { label: 'Serviço', value: service },
-                servicePrice !== null ? { label: 'Valor do procedimento', value: formatCurrency(servicePrice) } : null,
-                depositValue !== null ? { label: 'Sinal', value: formatCurrency(depositValue) } : null,
-                remainingValue !== null ? { label: 'Restante após o sinal', value: formatCurrency(remainingValue) } : null,
-                { label: 'Data', value: formatDatePtBr(date) },
-                { label: 'Horário', value: time },
-                { label: 'Nome', value: form.name },
-                { label: 'WhatsApp', value: form.phone },
-                form.notes ? { label: 'Obs.', value: form.notes } : null,
-              ]
-                .filter(Boolean)
-                .map((row) => (
-                  <div key={row!.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #F5EEFF', gap: 12 }}>
-                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.9rem', color: '#8B5A7A' }}>{row!.label}</span>
-                    <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', fontWeight: 700, textAlign: 'right' }}>{row!.value}</span>
-                  </div>
-                ))}
-            </div>
-
-            <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '16px 20px', marginBottom: 16 }}>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 6px' }}>
-                💳 Sinal para confirmação
-              </p>
-
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
-                {depositValue !== null && servicePrice !== null
-                  ? selectedSpec?.id === 'carol'
-                    ? `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal de 30% para reservar é ${formatCurrency(depositValue)}.`
-                    : `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal fixo para reservar é ${formatCurrency(depositValue)}.`
-                  : 'Selecione um serviço para visualizar o valor do sinal.'}
-              </p>
-            </div>
-
-            <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#8B5A7A', lineHeight: 1.6 }}>
-              ✦ Ao continuar, o horário será bloqueado como pré-reserva. O agendamento somente será confirmado após o pagamento do sinal correspondente.
+            <p style={{ fontFamily: "'Nunito', sans-serif", color: '#8B5A7A', fontSize: '1rem' }}>
+              Aproveite nossas promoções e ganhe muito mais por menos!
             </p>
-
-            {submitError && (
-              <div style={{ background: '#FFF3F7', border: '1.5px solid rgba(224,25,138,0.25)', borderRadius: 14, padding: '14px 16px', marginTop: 16 }}>
-                <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#A52B68', margin: 0, lineHeight: 1.5 }}>
-                  {submitError}
-                </p>
-              </div>
-            )}
           </div>
-        )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, gap: 12 }}>
-          {step > 1 ? (
-            <button onClick={() => setStep((s) => (s - 1) as Step)} className="btn-secondary">
-              ← Voltar
-            </button>
-          ) : (
-            <Link to="/" className="btn-secondary">
-              ← Início
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            {PROMOS.map((p, i) => (
+              <div key={p.code} className="reveal" style={{ background: 'white', borderRadius: 24, overflow: 'hidden', boxShadow: '0 8px 30px rgba(45,8,32,0.08)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 50px rgba(45,8,32,0.12)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 30px rgba(45,8,32,0.08)'; }}
+              >
+                <div style={{ background: p.color, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
+                  <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 50, letterSpacing: '0.08em' }}>{p.badge}</span>
+                  <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.5rem', color: 'white', margin: '12px 0 4px' }}>{p.title}</h3>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.5 }}>{p.desc}</p>
+                </div>
+                <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between' }}>
+                  <div style={{ background: '#FBF0F8', border: `2px dashed ${p.color}`, borderRadius: 10, padding: '8px 16px', flex: 1 }}>
+                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: p.color, letterSpacing: '0.1em' }}>{p.code}</span>
+                  </div>
+                  <button onClick={() => copyCode(p.code)} style={{ background: p.color, color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
+                    {copiedCode === p.code ? '✓ Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── DEPOIMENTOS ───────────────────────────────────────────────── */}
+      <section style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
+          <span className="section-label">Depoimentos</span>
+          <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 12px' }}>
+            O que nossas <span className="gradient-text">clientes dizem</span>
+          </h2>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
+          {TESTIMONIALS.map((t, i) => (
+            <div key={t.name} className="reveal" style={{ animationDelay: `${i * 0.1}s`, background: 'white', borderRadius: 24, padding: '28px', border: `1.5px solid ${t.color}`, boxShadow: '0 4px 20px rgba(45,8,32,0.06)', transition: 'all 0.3s ease', position: 'relative', overflow: 'hidden' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(45,8,32,0.1)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(45,8,32,0.06)'; }}
+            >
+              <div style={{ position: 'absolute', top: -10, right: -10, width: 80, height: 80, background: t.color, opacity: 0.3, borderRadius: '50%' }} />
+              <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
+                {[...Array(5)].map((_, si) => <span key={si} style={{ color: '#E0198A', fontSize: '0.9rem' }}>★</span>)}
+              </div>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.92rem', color: '#5A3050', lineHeight: 1.7, margin: '0 0 20px', position: 'relative' }}>"{t.text}"</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 42, height: 42, background: t.color, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>{t.avatar}</div>
+                <div>
+                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.95rem', color: '#2D0820', margin: 0 }}>{t.name}</p>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: '#8B5A7A', margin: 0 }}>{t.role}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── CONTATO & LOCALIZAÇÃO ─────────────────────────────────────── */}
+      <section className="home-section home-contact-section" style={{ background: '#2D0820', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: 350, height: 350, background: 'radial-gradient(circle, rgba(224,25,138,0.12) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 60, alignItems: 'center' }}>
+          <div>
+            <div className="reveal-left">
+              <span className="section-label" style={{ background: 'rgba(196,168,232,0.15)', borderColor: 'rgba(196,168,232,0.3)', color: '#C4A8E8' }}>Encontre a gente</span>
+              <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: 'white', margin: '16px 0 24px' }}>
+                Venha nos <span style={{ color: '#E0198A' }}>visitar</span>
+              </h2>
+            </div>
+            <div className="reveal-left" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {[
+                { icon: '📍', title: 'Endereço', content: 'Rua Juca Pita, 15-71\nPresidente Epitácio - SP' },
+                { icon: '⏰', title: 'Horário', content: 'Segunda a Sexta: 9h às 19h\nSábado: 9h às 17h' },
+                { icon: '📱', title: 'WhatsApp', content: 'Carol (Cílios): +55 18 98154-1288\nMalu (Unhas): +55 18 99711-6620' },
+              ].map((c) => (
+                <div key={c.icon} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                  <div style={{ width: 44, height: 44, background: 'rgba(196,168,232,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>{c.icon}</div>
+                  <div>
+                    <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#C4A8E8', margin: '0 0 4px' }}>{c.title}</p>
+                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.65)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{c.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="reveal-left" style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
+                📸 Instagram
+              </a>
+              <Link to="/agendamento" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)', fontSize: '0.9rem', padding: '10px 20px' }}>
+                Agendar →
+              </Link>
+            </div>
+          </div>
+
+          {/* Map placeholder */}
+          <div className="reveal-right" style={{ borderRadius: 28, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(196,168,232,0.2)', aspectRatio: '4/3', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(123,47,190,0.2), rgba(224,25,138,0.1))' }} />
+            <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: '3rem', marginBottom: 12 }}>📍</div>
+              <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.2rem', color: '#C4A8E8', margin: '0 0 8px', fontWeight: 600 }}>Studio CM</p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>Rua Juca Pita, 15-71 — Presidente Epitácio - SP</p>
+              <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.85rem', padding: '10px 20px' }}>
+                Ver no Maps →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA AGENDAMENTO ───────────────────────────────────────────── */}
+      <section className="home-section home-cta-section" style={{ padding: '100px 24px', textAlign: 'center', background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF, #FBF0F8)' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <div className="reveal animate-float-slow" style={{ fontSize: '3rem', marginBottom: 20 }}>✦</div>
+          <h2 className="reveal" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2.5rem, 5vw, 3.8rem)', color: '#2D0820', margin: '0 0 16px', lineHeight: 1.1 }}>
+            Pronta pra se sentir <span className="shimmer-text">incrível?</span>
+          </h2>
+          <p className="reveal" style={{ fontFamily: "'Nunito', sans-serif", fontSize: '1.1rem', color: '#8B5A7A', margin: '0 0 40px', lineHeight: 1.7 }}>
+            Agende seu horário agora e viva a experiência StudioCM. Porque beleza é arte, e você merece o melhor.
+          </p>
+          <div className="reveal" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/agendamento" className="btn-pink" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+              Agendar meu horário ♡
             </Link>
-          )}
-
-          {step < 4 ? (
-            <button
-              onClick={() => canNext && setStep((s) => (s + 1) as Step)}
-              className="btn-pink"
-              style={{ opacity: canNext ? 1 : 0.45, cursor: canNext ? 'pointer' : 'not-allowed' }}
-            >
-              Próximo →
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              className="btn-pink"
-              disabled={submitting}
-              style={{
-                opacity: submitting ? 0.6 : 1,
-                cursor: submitting ? 'wait' : 'pointer',
-              }}
-            >
-              {submitting ? 'Criando pré-reserva...' : 'Criar pré-reserva e continuar ♡'}
-            </button>
-          )}
+            <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+              Carol — WhatsApp ✦
+            </a>
+            <a href="https://wa.me/5518997116620" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+              Malu — WhatsApp ♡
+            </a>
+          </div>
         </div>
       </section>
     </div>
