@@ -107,14 +107,14 @@ const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 function generateDates() {
   const dates: Date[] = []
   const today = new Date()
+  const lastDayOfMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    0,
+  ).getDate()
 
-  for (let i = 1; i <= 14; i++) {
-    const d = new Date(today)
-    d.setDate(today.getDate() + i)
-
-    if (d.getDay() !== 0) {
-      dates.push(d)
-    }
+  for (let day = today.getDate(); day <= lastDayOfMonth; day++) {
+    dates.push(new Date(today.getFullYear(), today.getMonth(), day))
   }
 
   return dates
@@ -158,6 +158,8 @@ export default function Booking() {
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [availabilityReason, setAvailabilityReason] = useState<string | null>(null)
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null)
+  const [availableDateKeys, setAvailableDateKeys] = useState<Set<string>>(new Set())
+  const [loadingDates, setLoadingDates] = useState(false)
 
   const dates = useMemo(() => generateDates(), [])
   const selectableDates = useMemo(
@@ -176,6 +178,13 @@ export default function Booking() {
         return day !== 0
       }),
     [dates, specialist],
+  )
+  const visibleDates = useMemo(
+    () =>
+      specialist && service
+        ? selectableDates.filter((d) => availableDateKeys.has(toIsoDate(d)))
+        : selectableDates,
+    [selectableDates, availableDateKeys, specialist, service],
   )
   const selectedSpec = SPECIALISTS.find((s) => s.id === specialist)
   const accentColor = selectedSpec?.color ?? '#E0198A'
@@ -212,7 +221,86 @@ export default function Booking() {
     setAvailabilityError(null)
     setAvailabilityReason(null)
     setDurationMinutes(null)
+    setAvailableDateKeys(new Set())
   }, [specialist, service])
+
+  useEffect(() => {
+    if (!specialist || !service) {
+      setAvailableDateKeys(new Set())
+      setLoadingDates(false)
+      return
+    }
+
+    const controller = new AbortController()
+
+    const loadAvailableDates = async () => {
+      setLoadingDates(true)
+
+      try {
+        const results = await Promise.all(
+          selectableDates.map(async (candidateDate) => {
+            const dateKey = toIsoDate(candidateDate)
+            const params = new URLSearchParams({
+              specialist,
+              service,
+              date: dateKey,
+            })
+
+            try {
+              const response = await fetch(
+                `${API_BASE_URL}/api/availability?${params.toString()}`,
+                { signal: controller.signal },
+              )
+
+              const data = (await response.json()) as AvailabilityResponse
+
+              if (!response.ok || !data.ok) {
+                return { dateKey, available: true }
+              }
+
+              return {
+                dateKey,
+                available: (data.availableTimes ?? []).length > 0,
+              }
+            } catch (error) {
+              if (error instanceof DOMException && error.name === 'AbortError') {
+                throw error
+              }
+
+              console.error(
+                `Erro ao consultar disponibilidade do dia ${dateKey}:`,
+                error,
+              )
+
+              return { dateKey, available: true }
+            }
+          }),
+        )
+
+        if (controller.signal.aborted) return
+
+        setAvailableDateKeys(
+          new Set(
+            results
+              .filter((result) => result.available)
+              .map((result) => result.dateKey),
+          ),
+        )
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('Erro ao carregar os dias disponíveis:', error)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingDates(false)
+        }
+      }
+    }
+
+    void loadAvailableDates()
+
+    return () => controller.abort()
+  }, [specialist, service, selectableDates])
 
   useEffect(() => {
     setTime(null)
@@ -499,29 +587,43 @@ export default function Booking() {
                 Data:
               </h3>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {selectableDates.map((d) => {
-                  const key = toIsoDate(d)
-                  const dayName = DAYS[d.getDay()]
-                  const dayNum = d.getDate()
+              {loadingDates ? (
+                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0 }}>
+                    Consultando os dias com horários disponíveis...
+                  </p>
+                </div>
+              ) : visibleDates.length === 0 ? (
+                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0, lineHeight: 1.5 }}>
+                    Não há mais horários disponíveis neste mês ♡
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {visibleDates.map((d) => {
+                    const key = toIsoDate(d)
+                    const dayName = DAYS[d.getDay()]
+                    const dayNum = d.getDate()
 
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setDate(key)}
-                      style={{ background: date === key ? accentColor : 'white', border: `1.5px solid ${date === key ? accentColor : 'rgba(196,168,232,0.3)'}`, borderRadius: 12, padding: '10px 16px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s ease', minWidth: 70 }}
-                    >
-                      <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.7rem', color: date === key ? 'rgba(255,255,255,0.8)' : '#8B5A7A', margin: '0 0 2px', fontWeight: 600, textTransform: 'uppercase' }}>
-                        {dayName}
-                      </p>
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setDate(key)}
+                        style={{ background: date === key ? accentColor : 'white', border: `1.5px solid ${date === key ? accentColor : 'rgba(196,168,232,0.3)'}`, borderRadius: 12, padding: '10px 16px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s ease', minWidth: 70 }}
+                      >
+                        <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.7rem', color: date === key ? 'rgba(255,255,255,0.8)' : '#8B5A7A', margin: '0 0 2px', fontWeight: 600, textTransform: 'uppercase' }}>
+                          {dayName}
+                        </p>
 
-                      <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.3rem', fontWeight: 700, color: date === key ? 'white' : '#2D0820', margin: 0 }}>
-                        {dayNum}
-                      </p>
-                    </button>
-                  )
-                })}
-              </div>
+                        <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.3rem', fontWeight: 700, color: date === key ? 'white' : '#2D0820', margin: 0 }}>
+                          {dayNum}
+                        </p>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             <div>
