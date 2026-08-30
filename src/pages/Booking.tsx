@@ -107,14 +107,11 @@ const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 function generateDates() {
   const dates: Date[] = []
   const today = new Date()
-  const lastDayOfMonth = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    0,
-  ).getDate()
 
-  for (let day = today.getDate(); day <= lastDayOfMonth; day++) {
-    dates.push(new Date(today.getFullYear(), today.getMonth(), day))
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    dates.push(d)
   }
 
   return dates
@@ -596,7 +593,7 @@ export default function Booking() {
               ) : visibleDates.length === 0 ? (
                 <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
                   <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0, lineHeight: 1.5 }}>
-                    Não há mais horários disponíveis neste mês ♡
+                    Não há horários disponíveis nos próximos 30 dias ♡
                   </p>
                 </div>
               ) : (
