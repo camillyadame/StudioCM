@@ -94,6 +94,11 @@ type SpecialistId = 'carol' | 'malu'
 
 const WHATSAPP_NUMBERS: Record<SpecialistId, string> = { carol: '5518981541288', malu: '5518997116620' }
 
+const PIX_KEYS: Record<SpecialistId, string> = {
+  carol: '62328697000181',
+  malu: 'Adamemarialuiza@gmail.com',
+}
+
 const SERVICE_PRICES: Record<SpecialistId, Record<string, number>> = {
   carol: {'Volume Light':100,'Volume Brasileiro':120,'Volume 4D':135,'Volume Árabe':140,'Volume 6D':150,Fox:155,Capping:185,'Manutenção Light':70,'Manutenção Brasileiro':80,'Manutenção 4D e Árabe':85,'Manutenção 6D':95,'Manutenção Fox':100,'Manutenção Capping':115,'Design de Sobrancelha':25,Buço:15},
   malu: {'Alongamento Gel na Tips — Simples / Decoração simples':110,'Manutenção Alongamento Gel na Tips — Simples / Decoração simples':90,'Alongamento Gel na Tips — Nail Art / Decorações 3D':130,'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D':110,'Banho de Gel — Simples / Decoração simples':90,'Manutenção Banho de Gel — Simples / Decoração simples':75,'Banho de Gel — Nail Art / Decoração 3D':95,'Manutenção Banho de Gel — Nail Art / Decoração 3D':80,'Postiça Realista — Simples / Decoração simples':60,'Postiça Realista — Nail Art / Decoração 3D':70,'Esmaltação em Gel nas Unhas Naturais':60,'Pedicure e Manicure':110},
@@ -189,6 +194,7 @@ export default function Booking() {
   const servicePrice = getServicePrice(specialist, service)
   const depositValue = getDepositValue(specialist, servicePrice)
   const remainingValue = servicePrice !== null && depositValue !== null ? Math.max(servicePrice - depositValue, 0) : null
+  const pixKey = specialist === 'carol' || specialist === 'malu' ? PIX_KEYS[specialist] : null
   const whatsappMessage = useMemo(() => {
     if (!done || !specialist || !service || !date || !time || depositValue === null) return ''
     return [
@@ -197,12 +203,13 @@ export default function Booking() {
       `Serviço: ${service}`,
       servicePrice !== null ? `Valor do procedimento: ${formatCurrency(servicePrice)}` : null,
       `Sinal para confirmação: ${formatCurrency(depositValue)}`,
+      `Chave Pix: ${pixKey}`,
       `Data: ${formatDatePtBr(date)}`, `Horário: ${time}`,
       `Cliente: ${form.name}`, `WhatsApp da cliente: ${form.phone}`,
       form.notes ? `Observações: ${form.notes}` : null,'',
       'Vou enviar o comprovante do sinal por aqui para confirmar meu agendamento.',
     ].filter(Boolean).join('\n')
-  }, [done,specialist,service,date,time,depositValue,servicePrice,form.name,form.phone,form.notes])
+  }, [done,specialist,service,date,time,depositValue,servicePrice,pixKey,form.name,form.phone,form.notes])
   const whatsappUrl = specialist === 'carol' || specialist === 'malu'
     ? `https://wa.me/${WHATSAPP_NUMBERS[specialist]}?text=${encodeURIComponent(whatsappMessage)}` : '#'
 
@@ -446,9 +453,17 @@ export default function Booking() {
             ))}
           </div>
 
-          <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', marginBottom: 32 }}>
-            Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Qualquer dúvida, nos chame no WhatsApp! 💕
+          <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', marginBottom: 20 }}>
+            Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Faça o Pix abaixo e depois envie o comprovante pelo WhatsApp. 💕
           </p>
+
+          {pixKey && depositValue !== null && (
+            <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '18px 20px', marginBottom: 28, textAlign: 'left' }}>
+              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 8px' }}>💳 Pix para pagamento do sinal</p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#5A3050', margin: '0 0 6px' }}>Valor: <strong>{formatCurrency(depositValue)}</strong></p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#5A3050', margin: 0, overflowWrap: 'anywhere' }}>Chave Pix da {selectedSpec?.name}: <strong>{pixKey}</strong></p>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/" className="btn-pink">Voltar para início ♡</Link>
@@ -773,6 +788,13 @@ export default function Booking() {
                     : `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal fixo para reservar é ${formatCurrency(depositValue)}.`
                   : 'Selecione um serviço para visualizar o valor do sinal.'}
               </p>
+
+              {pixKey && depositValue !== null && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.15)' : 'rgba(224,25,138,0.15)'}` }}>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: '0 0 4px' }}>Faça o Pix de <strong>{formatCurrency(depositValue)}</strong> para:</p>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', margin: 0, overflowWrap: 'anywhere' }}><strong>{pixKey}</strong></p>
+                </div>
+              )}
             </div>
 
             <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#8B5A7A', lineHeight: 1.6 }}>
