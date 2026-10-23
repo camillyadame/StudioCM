@@ -26,7 +26,7 @@ const CATEGORIAS_MALU = [
     time: 'até 2h15 (Simples) / até 3h (Nail Art)',
     manutencaoPeriodo: '15 a 30 dias',
     variants: [
-      { name: 'Simples / Decoração simples', aplicacao: 'R$ 110,00', manutencao: 'R$ 90,00' },
+      { name: 'Simples / Decoração simples', aplicacao: 'R$ 115,00', manutencao: 'R$ 90,00' },
       { name: 'Nail Art / Decorações 3D', aplicacao: 'R$ 130,00', manutencao: 'R$ 110,00' },
     ],
   },
