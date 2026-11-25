@@ -116,8 +116,13 @@ de pagamento e do painel.
 
 - **Conta PF:** confirmar que contas de pessoa física da Malu e da Carol geram
   credenciais e Pix pela API do Mercado Pago.
-- **E-mail do pagador:** a API exige e-mail e o site não pede. Opções: pedir
-  e-mail opcional à cliente ou usar um e-mail do estúdio (`MP_PAYER_EMAIL`).
+- **E-mail do pagador:** decidido em 25/11 que a cliente NÃO informa e-mail.
+  O servidor envia um e-mail técnico (`MP_PAYER_EMAIL_DOMAIN` ou
+  `MP_PAYER_EMAIL`). Não pode ser o e-mail da própria profissional (o Mercado
+  Pago recusa pagador igual ao recebedor). Validar no sandbox.
+- **Credenciais:** nenhuma configurada até termos os dados das duas
+  profissionais. Cada uma cria a própria aplicação no Mercado Pago
+  Developers; token e assinatura secreta vão só para o Environment da Render.
 - **Assinatura do webhook:** o formato do manifesto
   (`id:…;request-id:…;ts:…;`) segue a documentação do Mercado Pago e precisa
   ser validado com um webhook real do sandbox.

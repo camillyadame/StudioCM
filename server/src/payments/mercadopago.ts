@@ -117,12 +117,16 @@ export class MercadoPagoProvider implements PixProvider {
     /** Tolerância para o relógio do ts da assinatura (anti-replay). */
     private readonly maxSignatureAgeMs = 10 * 60_000,
     /**
-     * A API exige e-mail do pagador e o site não pede e-mail à cliente.
-     * Decisão pendente (docs/pix.md); até lá, vem de MP_PAYER_EMAIL.
+     * A API exige e-mail do pagador, mas a cliente NÃO informa e-mail
+     * (decisão da Camilly, 25/11). Usamos um endereço técnico por reserva
+     * num domínio do estúdio (MP_PAYER_EMAIL_DOMAIN) ou um fixo
+     * (MP_PAYER_EMAIL). Validar no sandbox antes de produção.
      */
-    private readonly payerEmailFor: (externalRef: string) => string = () => {
+    private readonly payerEmailFor: (externalRef: string) => string = (ref) => {
+      const domain = process.env.MP_PAYER_EMAIL_DOMAIN
+      if (domain) return `reserva-${ref.replace(/[^a-z0-9]/gi, '').slice(0, 12).toLowerCase()}@${domain}`
       const email = process.env.MP_PAYER_EMAIL
-      if (!email) throw new Error('MP_PAYER_EMAIL não configurado.')
+      if (!email) throw new Error('Configure MP_PAYER_EMAIL_DOMAIN ou MP_PAYER_EMAIL.')
       return email
     },
   ) {}
