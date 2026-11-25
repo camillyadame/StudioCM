@@ -15,6 +15,18 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+/*
+  Fluxo novo de pré-reserva com Pix automático (StudioCM 2.0). Desligado por
+  padrão: só entra com PIX_MODE = fake | sandbox | live. Ver docs/pix.md.
+*/
+{
+  const { pixMode, buildDeps, createPixRouter } = await import('./pix/router.js')
+  if (pixMode() !== 'off') {
+    app.use(createPixRouter(buildDeps()))
+    console.log(`Fluxo Pix ativo em modo ${pixMode()}.`)
+  }
+}
+
 const PORT = Number(process.env.PORT ?? 3001)
 
 const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE
