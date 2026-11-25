@@ -3,6 +3,13 @@ import cors from 'cors'
 import express from 'express'
 import { google } from 'googleapis'
 import {
+  SPECIALISTS,
+  describeDepositRule,
+  findServiceByName,
+  isSpecialist,
+  type SpecialistId,
+} from './catalog.js'
+import {
   LIMITS,
   cleanText,
   clientIp,
@@ -98,15 +105,6 @@ const calendar = google.calendar({
   auth,
 })
 
-type SpecialistId = 'carol' | 'malu'
-
-type WorkDay = {
-  start: string
-  end: string
-} | null
-
-type WeeklySchedule = Record<number, WorkDay>
-
 type BookingBody = {
   specialist?: string
   service?: string
@@ -120,79 +118,21 @@ type BookingBody = {
   website?: string
 }
 
-const WORK_SCHEDULES: Record<SpecialistId, WeeklySchedule> = {
-  carol: {
-    0: null,
-    1: { start: '09:00', end: '18:00' },
-    2: { start: '09:00', end: '18:00' },
-    3: { start: '09:00', end: '18:00' },
-    4: { start: '09:00', end: '18:00' },
-    5: { start: '09:00', end: '18:00' },
-    6: { start: '09:00', end: '14:00' },
-  },
-  malu: {
-    0: null,
-    1: null,
-    2: { start: '09:00', end: '18:00' },
-    3: { start: '09:00', end: '18:00' },
-    4: { start: '09:00', end: '18:00' },
-    5: { start: '09:00', end: '18:00' },
-    6: { start: '08:00', end: '13:00' },
-  },
+/*
+  Horários de atendimento, horários fixos de início e durações vêm do
+  catálogo único (./catalog.ts), o mesmo arquivo que o site usa.
+*/
+function getWorkDay(specialist: SpecialistId, dayOfWeek: number) {
+  return SPECIALISTS[specialist].schedule[dayOfWeek] ?? null
 }
 
-const MALU_FIXED_START_TIMES: Record<number, string[]> = {
-  0: [],
-  1: [],
-  2: ['09:00', '11:00', '14:00', '16:00'],
-  3: ['09:00', '11:00', '14:00', '16:00'],
-  4: ['09:00', '11:00', '14:00', '16:00'],
-  5: ['09:00', '11:00', '14:00', '16:00'],
-  6: ['08:00', '10:00'],
+function getFixedStartTimes(specialist: SpecialistId, dayOfWeek: number) {
+  const fixed = SPECIALISTS[specialist].fixedStartTimes
+  return fixed ? fixed[dayOfWeek] ?? [] : null
 }
 
-const SERVICE_DURATIONS: Record<
-  SpecialistId,
-  Record<string, number>
-> = {
-  carol: {
-    'Volume Light': 90,
-    'Volume Brasileiro': 90,
-    'Volume 4D': 90,
-    'Volume Árabe': 90,
-    'Volume 6D': 90,
-    Fox: 90,
-    Capping: 120,
-
-    'Manutenção Light': 60,
-    'Manutenção Brasileiro': 60,
-    'Manutenção 4D e Árabe': 60,
-    'Manutenção 6D': 60,
-    'Manutenção Fox': 60,
-    'Manutenção Capping': 60,
-
-    'Design de Sobrancelha': 90,
-    Buço: 90,
-  },
-
-  malu: {
-    'Alongamento Gel na Tips — Simples / Decoração simples': 135,
-    'Manutenção Alongamento Gel na Tips — Simples / Decoração simples': 120,
-    'Alongamento Gel na Tips — Nail Art / Decorações 3D': 180,
-    'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D': 120,
-    'Banho de Gel — Simples / Decoração simples': 120,
-    'Manutenção Banho de Gel — Simples / Decoração simples': 120,
-    'Banho de Gel — Nail Art / Decoração 3D': 120,
-    'Manutenção Banho de Gel — Nail Art / Decoração 3D': 120,
-    'Postiça Realista — Simples / Decoração simples': 120,
-    'Postiça Realista — Nail Art / Decoração 3D': 120,
-    'Esmaltação em Gel nas Unhas Naturais': 120,
-    'Pedicure e Manicure': 90,
-  },
-}
-
-function isSpecialist(value: string): value is SpecialistId {
-  return value === 'carol' || value === 'malu'
+function getServiceDuration(specialist: SpecialistId, service: string) {
+  return findServiceByName(specialist, service)?.durationMinutes
 }
 
 function getCalendarId(specialist: SpecialistId) {
@@ -259,9 +199,7 @@ function isWithinBookingWindow(date: string) {
 }
 
 function getPaymentRule(specialist: SpecialistId) {
-  return specialist === 'carol'
-    ? 'Sinal pendente: 30% do valor do procedimento.'
-    : 'Sinal pendente: R$ 30,00 fixos.'
+  return `Sinal pendente: ${describeDepositRule(specialist)}.`
 }
 
 async function getBusyPeriods(
@@ -382,7 +320,7 @@ app.get('/api/availability', async (req, res) => {
       })
     }
 
-    const duration = SERVICE_DURATIONS[specialist][service]
+    const duration = getServiceDuration(specialist, service)
 
     if (!duration) {
       return res.status(400).json({
@@ -400,7 +338,7 @@ app.get('/api/availability', async (req, res) => {
 
     const selectedDate = localDateTime(date, '12:00')
     const dayOfWeek = selectedDate.getDay()
-    const workDay = WORK_SCHEDULES[specialist][dayOfWeek]
+    const workDay = getWorkDay(specialist, dayOfWeek)
 
     if (!workDay) {
       return res.json({
@@ -426,9 +364,10 @@ app.get('/api/availability', async (req, res) => {
     const endMinutes = timeToMinutes(workDay.end)
 
     const candidateTimes: string[] = []
+    const fixedStartTimes = getFixedStartTimes(specialist, dayOfWeek)
 
-    if (specialist === 'malu') {
-      candidateTimes.push(...(MALU_FIXED_START_TIMES[dayOfWeek] ?? []))
+    if (fixedStartTimes) {
+      candidateTimes.push(...fixedStartTimes)
     } else {
       for (
         let current = startMinutes;
@@ -571,7 +510,7 @@ app.post('/api/bookings', async (req, res) => {
       })
     }
 
-    const duration = SERVICE_DURATIONS[specialist][service]
+    const duration = getServiceDuration(specialist, service)
 
     if (!duration) {
       return res.status(400).json({
@@ -593,7 +532,7 @@ app.post('/api/bookings', async (req, res) => {
     }
 
     const dayOfWeek = appointmentStart.getDay()
-    const workDay = WORK_SCHEDULES[specialist][dayOfWeek]
+    const workDay = getWorkDay(specialist, dayOfWeek)
 
     if (!workDay) {
       return res.status(400).json({
@@ -605,13 +544,13 @@ app.post('/api/bookings', async (req, res) => {
     const workStart = localDateTime(date, workDay.start)
     const workEnd = localDateTime(date, workDay.end)
 
-    if (specialist === 'malu') {
-      const allowedTimes = MALU_FIXED_START_TIMES[dayOfWeek] ?? []
+    const allowedTimes = getFixedStartTimes(specialist, dayOfWeek)
 
+    if (allowedTimes) {
       if (!allowedTimes.includes(time)) {
         return res.status(400).json({
           ok: false,
-          message: 'Este não é um horário de início válido para a Malu.',
+          message: `Este não é um horário de início válido para a ${SPECIALISTS[specialist].name}.`,
         })
       }
     } else if (
@@ -684,8 +623,7 @@ app.post('/api/bookings', async (req, res) => {
       }
 
       const calendarId = getCalendarId(specialist)
-      const specialistName =
-        specialist === 'carol' ? 'Carol' : 'Malu'
+      const specialistName = SPECIALISTS[specialist].name
 
       const paymentRule = getPaymentRule(specialist)
 

@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  SPECIALISTS as CATALOG_SPECIALISTS,
+  SPECIALIST_IDS,
+  findServiceByName,
+  getDepositValue as calcDeposit,
+  isSpecialist,
+  servicesOf,
+  whatsappUrl as buildWhatsappUrl,
+  type SpecialistId,
+} from '@catalog'
 
 type Step = 1 | 2 | 3 | 4
 
@@ -38,74 +48,25 @@ type BookingResponse = {
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
-const SPECIALISTS = [
-  {
-    id: 'carol',
-    name: 'Carol',
-    role: 'Lash Designer',
-    specialty: 'Extensão de Cílios',
-    color: '#7B2FBE',
-    bg: '#E8DAFF',
-    icon: '✦',
-    services: [
-      'Volume Light',
-      'Volume Brasileiro',
-      'Volume 4D',
-      'Volume Árabe',
-      'Volume 6D',
-      'Fox',
-      'Capping',
-      'Manutenção Light',
-      'Manutenção Brasileiro',
-      'Manutenção 4D e Árabe',
-      'Manutenção 6D',
-      'Manutenção Fox',
-      'Manutenção Capping',
-      'Design de Sobrancelha',
-      'Buço',
-    ],
-  },
-  {
-    id: 'malu',
-    name: 'Malu',
-    role: 'Nail Designer',
-    specialty: 'Unhas & Nail Art',
-    color: '#E0198A',
-    bg: '#FFD6ED',
-    icon: '♡',
-    services: [
-      'Alongamento Gel na Tips — Simples / Decoração simples',
-      'Manutenção Alongamento Gel na Tips — Simples / Decoração simples',
-      'Alongamento Gel na Tips — Nail Art / Decorações 3D',
-      'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D',
-      'Banho de Gel — Simples / Decoração simples',
-      'Manutenção Banho de Gel — Simples / Decoração simples',
-      'Banho de Gel — Nail Art / Decoração 3D',
-      'Manutenção Banho de Gel — Nail Art / Decoração 3D',
-      'Postiça Realista — Simples / Decoração simples',
-      'Postiça Realista — Nail Art / Decoração 3D',
-      'Esmaltação em Gel nas Unhas Naturais',
-      'Pedicure e Manicure',
-    ],
-  },
-]
-
-type SpecialistId = 'carol' | 'malu'
-
-const WHATSAPP_NUMBERS: Record<SpecialistId, string> = { carol: '5518981541288', malu: '5518997116620' }
-
-const PIX_KEYS: Record<SpecialistId, string> = {
-  carol: '62328697000181',
-  malu: 'Adamemarialuiza@gmail.com',
+/* Profissionais, serviços, preços, sinal, Pix e dias de atendimento vêm do catálogo único (server/src/catalog.ts). */
+const SPECIALIST_STYLE: Record<SpecialistId, { color: string; bg: string; icon: string }> = {
+  carol: { color: '#7B2FBE', bg: '#E8DAFF', icon: '✦' },
+  malu: { color: '#E0198A', bg: '#FFD6ED', icon: '♡' },
 }
 
-const SERVICE_PRICES: Record<SpecialistId, Record<string, number>> = {
-  carol: {'Volume Light':100,'Volume Brasileiro':120,'Volume 4D':135,'Volume Árabe':140,'Volume 6D':150,Fox:155,Capping:185,'Manutenção Light':70,'Manutenção Brasileiro':80,'Manutenção 4D e Árabe':85,'Manutenção 6D':95,'Manutenção Fox':100,'Manutenção Capping':115,'Design de Sobrancelha':25,Buço:15},
-  malu: {'Alongamento Gel na Tips — Simples / Decoração simples':115,'Manutenção Alongamento Gel na Tips — Simples / Decoração simples':90,'Alongamento Gel na Tips — Nail Art / Decorações 3D':130,'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D':110,'Banho de Gel — Simples / Decoração simples':90,'Manutenção Banho de Gel — Simples / Decoração simples':75,'Banho de Gel — Nail Art / Decoração 3D':95,'Manutenção Banho de Gel — Nail Art / Decoração 3D':80,'Postiça Realista — Simples / Decoração simples':60,'Postiça Realista — Nail Art / Decoração 3D':70,'Esmaltação em Gel nas Unhas Naturais':60,'Pedicure e Manicure':110},
-}
+const SPECIALISTS = SPECIALIST_IDS.map((id) => ({
+  id,
+  name: CATALOG_SPECIALISTS[id].name,
+  role: CATALOG_SPECIALISTS[id].role,
+  specialty: CATALOG_SPECIALISTS[id].specialty,
+  ...SPECIALIST_STYLE[id],
+  services: servicesOf(id).map((s) => s.name),
+}))
+
 function formatCurrency(value:number){return value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-function getServicePrice(s:string|null,v:string|null){if(!s||!v||(s!=='carol'&&s!=='malu'))return null;return SERVICE_PRICES[s][v]??null}
-function getDepositValue(s:string|null,p:number|null){if(!s||p===null)return null;return s==='carol'?Math.round(p*30)/100:30}
+function getServicePrice(s:string|null,v:string|null){if(!s||!v||!isSpecialist(s))return null;return findServiceByName(s,v)?.price??null}
+function getDepositValue(s:string|null,p:number|null){if(!s||p===null||!isSpecialist(s))return null;return calcDeposit(s,p)}
+function worksOn(s:string|null,day:number){if(!s||!isSpecialist(s))return day!==0;return Boolean(CATALOG_SPECIALISTS[s].schedule[day])}
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -168,19 +129,7 @@ export default function Booking() {
   const dates = useMemo(() => generateDates(), [])
   const selectableDates = useMemo(
     () =>
-      dates.filter((d) => {
-        const day = d.getDay()
-
-        if (specialist === 'malu') {
-          return day >= 2 && day <= 6
-        }
-
-        if (specialist === 'carol') {
-          return day >= 1 && day <= 6
-        }
-
-        return day !== 0
-      }),
+      dates.filter((d) => worksOn(specialist, d.getDay())),
     [dates, specialist],
   )
   const visibleDates = useMemo(
@@ -196,12 +145,13 @@ export default function Booking() {
   const servicePrice = getServicePrice(specialist, service)
   const depositValue = getDepositValue(specialist, servicePrice)
   const remainingValue = servicePrice !== null && depositValue !== null ? Math.max(servicePrice - depositValue, 0) : null
-  const pixKey = specialist === 'carol' || specialist === 'malu' ? PIX_KEYS[specialist] : null
+  const pixKey = specialist && isSpecialist(specialist) ? CATALOG_SPECIALISTS[specialist].pixKey : null
+  const depositRule = specialist && isSpecialist(specialist) ? CATALOG_SPECIALISTS[specialist].deposit : null
   const whatsappMessage = useMemo(() => {
     if (!done || !specialist || !service || !date || !time || depositValue === null) return ''
     return [
       'Olá! Fiz uma pré-reserva pelo site do StudioCM ♡','',
-      `Profissional: ${specialist === 'carol' ? 'Carol' : 'Malu'}`,
+      `Profissional: ${selectedSpec?.name ?? ''}`,
       `Serviço: ${service}`,
       servicePrice !== null ? `Valor do procedimento: ${formatCurrency(servicePrice)}` : null,
       `Sinal para confirmação: ${formatCurrency(depositValue)}`,
@@ -211,9 +161,9 @@ export default function Booking() {
       form.notes ? `Observações: ${form.notes}` : null,'',
       'Vou enviar o comprovante do sinal por aqui para confirmar meu agendamento.',
     ].filter(Boolean).join('\n')
-  }, [done,specialist,service,date,time,depositValue,servicePrice,pixKey,form.name,form.phone,form.notes])
-  const whatsappUrl = specialist === 'carol' || specialist === 'malu'
-    ? `https://wa.me/${WHATSAPP_NUMBERS[specialist]}?text=${encodeURIComponent(whatsappMessage)}` : '#'
+  }, [done,specialist,service,date,time,depositValue,servicePrice,pixKey,form.name,form.phone,form.notes,selectedSpec])
+  const whatsappUrl = specialist && isSpecialist(specialist)
+    ? buildWhatsappUrl(specialist, whatsappMessage) : '#'
 
   const canNext =
     (step === 1 && Boolean(specialist && service)) ||
@@ -561,9 +511,9 @@ export default function Booking() {
                   </p>
 
                   <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
-                    {selectedSpec?.id === 'carol'
-                      ? 'Para confirmar seu agendamento com a Carol, é necessário o pagamento antecipado de um sinal correspondente a 30% do valor do procedimento escolhido.'
-                      : 'Para confirmar seu agendamento com a Malu, é necessário o pagamento antecipado de um sinal fixo de R$ 30,00.'}
+                    {depositRule?.type === 'percent'
+                      ? `Para confirmar seu agendamento com a ${selectedSpec?.name}, é necessário o pagamento antecipado de um sinal correspondente a ${depositRule.value}% do valor do procedimento escolhido.`
+                      : `Para confirmar seu agendamento com a ${selectedSpec?.name}, é necessário o pagamento antecipado de um sinal fixo de ${formatCurrency(depositRule?.value ?? 0)}.`}
                   </p>
                 </div>
 
@@ -586,7 +536,7 @@ export default function Booking() {
                   <div style={{ background:'white', border:`1.5px solid ${accentColor}30`, borderRadius:16, padding:'16px 20px', marginTop:20 }}>
                     <p style={{ fontFamily:"'Fredoka', sans-serif", fontWeight:700, color:accentColor, margin:'0 0 8px' }}>Valor e sinal</p>
                     <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:'0 0 4px' }}>Procedimento: <strong>{formatCurrency(servicePrice)}</strong></p>
-                    <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:0 }}>Sinal para reservar: <strong>{formatCurrency(depositValue)}</strong>{selectedSpec?.id === 'carol' ? ' (30%)' : ' (valor fixo)'}</p>
+                    <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:0 }}>Sinal para reservar: <strong>{formatCurrency(depositValue)}</strong>{depositRule?.type === 'percent' ? ` (${depositRule.value}%)` : ' (valor fixo)'}</p>
                   </div>
                 )}
               </div>
@@ -805,8 +755,8 @@ export default function Booking() {
 
               <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
                 {depositValue !== null && servicePrice !== null
-                  ? selectedSpec?.id === 'carol'
-                    ? `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal de 30% para reservar é ${formatCurrency(depositValue)}.`
+                  ? depositRule?.type === 'percent'
+                    ? `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal de ${depositRule.value}% para reservar é ${formatCurrency(depositValue)}.`
                     : `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal fixo para reservar é ${formatCurrency(depositValue)}.`
                   : 'Selecione um serviço para visualizar o valor do sinal.'}
               </p>
