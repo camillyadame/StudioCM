@@ -85,12 +85,14 @@ const MAX_PENDING_PER_PHONE = envNumber('BOOKING_MAX_PENDING_PER_PHONE', 2)
 
 /*
   Quanto tempo uma pré-reserva segura o horário sem o sinal confirmado.
-  Padrão: 10 minutos. PREBOOKING_TTL_MINUTES=0 desliga a expiração.
+  Padrão: 24 horas (1440 min), temporário até o Pix automático pelo
+  Mercado Pago existir; depois a ideia é voltar para 10 minutos.
+  PREBOOKING_TTL_MINUTES=0 desliga a expiração.
   PREBOOKING_EXPIRY_DRY_RUN=true só registra no log o que expiraria.
 */
 const PREBOOKING_TTL_MINUTES = (() => {
   const raw = process.env.PREBOOKING_TTL_MINUTES
-  const value = raw === undefined || raw === '' ? 10 : Number(raw)
+  const value = raw === undefined || raw === '' ? 24 * 60 : Number(raw)
   return Number.isFinite(value) && value > 0 ? value : 0
 })()
 const PREBOOKING_EXPIRY_DRY_RUN =
@@ -409,6 +411,7 @@ app.get('/api/calendars/test', async (_req, res) => {
 })
 
 app.get('/api/availability', rateLimitByIp(availabilityLimiter))
+app.get('/api/availability/range', rateLimitByIp(availabilityLimiter))
 app.post(
   '/api/bookings',
   rateLimitByIp(
@@ -537,7 +540,8 @@ app.get('/api/availability/range', async (req, res) => {
     if (
       dates.length === 0 ||
       dates.length > MAX_RANGE_DATES ||
-      !dates.every(isValidDate)
+      !dates.every(isValidDate) ||
+      !dates.every(isWithinBookingWindow)
     ) {
       return res.status(400).json({
         ok: false,
@@ -815,7 +819,7 @@ app.post('/api/bookings', async (req, res) => {
         paymentRule,
         'Status: PRÉ-RESERVA — aguardando confirmação do sinal.',
         expiresAt
-          ? `Se o sinal não for confirmado até ${expiresAt.toLocaleTimeString('pt-BR', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' })}, o horário é liberado automaticamente. Para confirmar, tire "PRÉ-RESERVA" do título.`
+          ? `Se o sinal não for confirmado até ${expiresAt.toLocaleString('pt-BR', { timeZone: TIME_ZONE, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}, o horário é liberado automaticamente. Para confirmar, tire "PRÉ-RESERVA" do título.`
           : null,
         notes ? '' : null,
         notes ? `Observações: ${notes}` : null,
