@@ -117,6 +117,111 @@ function getPaymentRule(specialist: SpecialistId) {
   return `Sinal pendente: ${describeDepositRule(specialist)}.`
 }
 
+type BusyPeriod = {
+  start: Date
+  end: Date
+}
+
+type DayAvailability = {
+  availableTimes: string[]
+  workHours?: {
+    start: string
+    end: string
+  }
+  reason?: string
+}
+
+const MAX_RANGE_DATES = 45
+
+/*
+  Janela do dia inteiro (00:00 até 00:00 do dia seguinte, horário de
+  Brasília). Assim um procedimento que termina depois do expediente
+  também é checado contra eventos desse trecho, como já faz a
+  revalidação em /api/bookings.
+*/
+function dayBounds(date: string) {
+  const start = localDateTime(date, '00:00')
+  return {
+    start,
+    end: new Date(start.getTime() + 24 * 60 * 60_000),
+  }
+}
+
+function getWorkDayForDate(specialist: SpecialistId, date: string) {
+  return getWorkDay(specialist, localDateTime(date, '12:00').getDay())
+}
+
+/*
+  Calcula os horários livres de um dia a partir dos períodos ocupados
+  já carregados do Google Calendar. Não faz nenhuma chamada externa,
+  então pode ser usada tanto para um dia quanto para um intervalo.
+*/
+function computeDayAvailability(
+  specialist: SpecialistId,
+  duration: number,
+  date: string,
+  busyPeriods: BusyPeriod[],
+  now: Date,
+): DayAvailability {
+  const dayOfWeek = localDateTime(date, '12:00').getDay()
+  const workDay = getWorkDay(specialist, dayOfWeek)
+
+  if (!workDay) {
+    return {
+      availableTimes: [],
+      reason: 'A profissional não atende neste dia.',
+    }
+  }
+
+  const startMinutes = timeToMinutes(workDay.start)
+  const endMinutes = timeToMinutes(workDay.end)
+
+  const candidateTimes: string[] = []
+  const fixedStartTimes = getFixedStartTimes(specialist, dayOfWeek)
+
+  if (fixedStartTimes) {
+    candidateTimes.push(...fixedStartTimes)
+  } else {
+    for (
+      let current = startMinutes;
+      current + duration <= endMinutes;
+      current += SLOT_INTERVAL_MINUTES
+    ) {
+      candidateTimes.push(minutesToTime(current))
+    }
+  }
+
+  const availableTimes: string[] = []
+
+  for (const time of candidateTimes) {
+    const appointmentStart = localDateTime(date, time)
+    const appointmentEnd = new Date(
+      appointmentStart.getTime() + duration * 60_000,
+    )
+
+    const conflicts = busyPeriods.some((busyPeriod) =>
+      rangesOverlap(
+        appointmentStart,
+        appointmentEnd,
+        busyPeriod.start,
+        busyPeriod.end,
+      ),
+    )
+
+    if (!conflicts && appointmentStart > now) {
+      availableTimes.push(time)
+    }
+  }
+
+  return {
+    availableTimes,
+    workHours: {
+      start: workDay.start,
+      end: workDay.end,
+    },
+  }
+}
+
 async function getBusyPeriods(
   specialist: SpecialistId,
   start: Date,
@@ -138,7 +243,7 @@ async function getBusyPeriods(
 
   return busy
     .filter((period) => period.start && period.end)
-    .map((period) => ({
+    .map((period): BusyPeriod => ({
       start: new Date(period.start!),
       end: new Date(period.end!),
     }))
@@ -242,69 +347,13 @@ app.get('/api/availability', async (req, res) => {
       })
     }
 
-    const selectedDate = localDateTime(date, '12:00')
-    const dayOfWeek = selectedDate.getDay()
-    const workDay = getWorkDay(specialist, dayOfWeek)
-
-    if (!workDay) {
-      return res.json({
-        ok: true,
-        specialist,
-        service,
-        date,
-        durationMinutes: duration,
-        availableTimes: [],
-        reason: 'A profissional não atende neste dia.',
-      })
-    }
-
-    const dayStart = localDateTime(date, workDay.start)
-    const dayEnd = localDateTime(date, workDay.end)
-    const busyPeriods = await getBusyPeriods(
-      specialist,
-      dayStart,
-      dayEnd,
-    )
-
-    const startMinutes = timeToMinutes(workDay.start)
-    const endMinutes = timeToMinutes(workDay.end)
-
-    const candidateTimes: string[] = []
-    const fixedStartTimes = getFixedStartTimes(specialist, dayOfWeek)
-
-    if (fixedStartTimes) {
-      candidateTimes.push(...fixedStartTimes)
-    } else {
-      for (
-        let current = startMinutes;
-        current + duration <= endMinutes;
-        current += SLOT_INTERVAL_MINUTES
-      ) {
-        candidateTimes.push(minutesToTime(current))
-      }
-    }
-
-    const availableTimes: string[] = []
-
-    for (const time of candidateTimes) {
-      const appointmentStart = localDateTime(date, time)
-      const appointmentEnd = new Date(
-        appointmentStart.getTime() + duration * 60_000,
-      )
-
-      const conflicts = busyPeriods.some((busyPeriod) =>
-        rangesOverlap(
-          appointmentStart,
-          appointmentEnd,
-          busyPeriod.start,
-          busyPeriod.end,
-        ),
-      )
-
-      if (!conflicts && appointmentStart > new Date()) {
-        availableTimes.push(time)
-      }
-    }
+    const busyPeriods = getWorkDayForDate(specialist, date)
+      ? await getBusyPeriods(
+          specialist,
+          dayBounds(date).start,
+          dayBounds(date).end,
+        )
+      : []
 
     return res.json({
       ok: true,
@@ -312,14 +361,122 @@ app.get('/api/availability', async (req, res) => {
       service,
       date,
       durationMinutes: duration,
-      workHours: {
-        start: workDay.start,
-        end: workDay.end,
-      },
-      availableTimes,
+      ...computeDayAvailability(
+        specialist,
+        duration,
+        date,
+        busyPeriods,
+        new Date(),
+      ),
     })
   } catch (error) {
     console.error('Erro ao consultar disponibilidade:', error)
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Não foi possível consultar os horários disponíveis.',
+    })
+  }
+})
+
+/*
+  Disponibilidade de vários dias com UMA única consulta freebusy ao
+  Google Calendar (em vez de uma por dia). O cálculo de cada dia é
+  exatamente o mesmo de /api/availability.
+
+  GET /api/availability/range?specialist=carol&service=...&dates=2026-11-25,2026-11-26
+*/
+app.get('/api/availability/range', async (req, res) => {
+  try {
+    const specialistParam = String(req.query.specialist ?? '')
+    const service = String(req.query.service ?? '')
+    const datesParam = String(req.query.dates ?? '')
+
+    if (!isSpecialist(specialistParam)) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Especialista inválida.',
+      })
+    }
+
+    const specialist = specialistParam
+
+    if (!service) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Serviço não informado.',
+      })
+    }
+
+    const duration = getServiceDuration(specialist, service)
+
+    if (!duration) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Serviço não encontrado para essa especialista.',
+      })
+    }
+
+    const dates = [
+      ...new Set(
+        datesParam
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
+    ].sort()
+
+    if (
+      dates.length === 0 ||
+      dates.length > MAX_RANGE_DATES ||
+      !dates.every(isValidDate)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: `Informe de 1 a ${MAX_RANGE_DATES} datas no formato YYYY-MM-DD.`,
+      })
+    }
+
+    let rangeStart: Date | null = null
+    let rangeEnd: Date | null = null
+
+    for (const date of dates) {
+      const workDay = getWorkDayForDate(specialist, date)
+      if (!workDay) continue
+
+      const { start: dayStart, end: dayEnd } = dayBounds(date)
+
+      if (!rangeStart || dayStart < rangeStart) rangeStart = dayStart
+      if (!rangeEnd || dayEnd > rangeEnd) rangeEnd = dayEnd
+    }
+
+    const busyPeriods =
+      rangeStart && rangeEnd
+        ? await getBusyPeriods(specialist, rangeStart, rangeEnd)
+        : []
+
+    const now = new Date()
+    const days: Record<string, DayAvailability> = {}
+
+    for (const date of dates) {
+      days[date] = computeDayAvailability(
+        specialist,
+        duration,
+        date,
+        busyPeriods,
+        now,
+      )
+    }
+
+    return res.json({
+      ok: true,
+      specialist,
+      service,
+      durationMinutes: duration,
+      days,
+    })
+  } catch (error) {
+    console.error('Erro ao consultar disponibilidade do período:', error)
 
     return res.status(500).json({
       ok: false,

@@ -28,6 +28,19 @@ type AvailabilityResponse = {
   message?: string
 }
 
+type AvailabilityRangeResponse = {
+  ok: boolean
+  durationMinutes?: number
+  days?: Record<
+    string,
+    {
+      availableTimes?: string[]
+      reason?: string
+    }
+  >
+  message?: string
+}
+
 type BookingResponse = {
   ok: boolean
   message?: string
@@ -190,8 +203,47 @@ export default function Booking() {
     const loadAvailableDates = async () => {
       setLoadingDates(true)
 
-      try {
-        const results = await Promise.all(
+      /*
+        Caminho rápido: uma única requisição para todos os dias, que no
+        servidor vira uma única consulta ao Google Calendar.
+      */
+      const loadFromRange = async () => {
+        const params = new URLSearchParams({
+          specialist,
+          service,
+          dates: selectableDates.map(toIsoDate).join(','),
+        })
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/availability/range?${params.toString()}`,
+          { signal: controller.signal },
+        )
+
+        const data = (await response.json()) as AvailabilityRangeResponse
+
+        if (!response.ok || !data.ok || !data.days) {
+          throw new Error(data.message ?? 'Resposta inválida do período.')
+        }
+
+        const days = data.days
+
+        return selectableDates.map((candidateDate) => {
+          const dateKey = toIsoDate(candidateDate)
+          const day = days[dateKey]
+
+          return {
+            dateKey,
+            available: day ? (day.availableTimes ?? []).length > 0 : true,
+          }
+        })
+      }
+
+      /*
+        Caminho antigo (um pedido por dia). Usado só se a API ainda não
+        tiver o endpoint de período, para não quebrar em produção.
+      */
+      const loadPerDay = () =>
+        Promise.all(
           selectableDates.map(async (candidateDate) => {
             const dateKey = toIsoDate(candidateDate)
             const params = new URLSearchParams({
@@ -230,6 +282,24 @@ export default function Booking() {
             }
           }),
         )
+
+      try {
+        let results: { dateKey: string; available: boolean }[]
+
+        try {
+          results = await loadFromRange()
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            throw error
+          }
+
+          console.warn(
+            'Consulta por período indisponível, consultando dia a dia:',
+            error,
+          )
+
+          results = await loadPerDay()
+        }
 
         if (controller.signal.aborted) return
 
