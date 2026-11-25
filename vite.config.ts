@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        '@catalog': path.resolve(__dirname, './server/src/catalog.ts'),
       },
     },
     server: {

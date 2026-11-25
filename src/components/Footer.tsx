@@ -1,4 +1,11 @@
 import { Link } from 'react-router-dom'
+import { SPECIALISTS, STUDIO, describeSchedule } from '@catalog'
+
+const SOCIAL_LINKS: { label: string; url: string | null }[] = [
+  { label: 'Instagram', url: STUDIO.social.instagram },
+  { label: 'TikTok', url: STUDIO.social.tiktok },
+  { label: 'Facebook', url: STUDIO.social.facebook },
+]
 
 export default function Footer() {
   return (
@@ -16,8 +23,8 @@ export default function Footer() {
               Onde beleza vira arte. Cílios e unhas que contam a sua história.
             </p>
             <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-              {['Instagram', 'TikTok', 'Facebook'].map((s) => (
-                <a key={s} href="#" style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(196,168,232,0.15)', border: '1px solid rgba(196,168,232,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#C4A8E8', fontSize: '0.7rem', fontFamily: "'Fredoka', sans-serif", transition: 'all 0.3s', fontWeight: 600 }}
+              {SOCIAL_LINKS.map(({ label: s, url }) => (
+                <a key={s} href={url ?? '#'} aria-label={s} {...(url ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(196,168,232,0.15)', border: '1px solid rgba(196,168,232,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#C4A8E8', fontSize: '0.7rem', fontFamily: "'Fredoka', sans-serif", transition: 'all 0.3s', fontWeight: 600 }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E0198A'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(196,168,232,0.15)'; (e.currentTarget as HTMLElement).style.color = '#C4A8E8'; }}
                 >
@@ -51,12 +58,12 @@ export default function Footer() {
           <div>
             <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', marginBottom: 20 }}>Especialistas</p>
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#FBF0F8', marginBottom: 4 }}>Carol ✦</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.6)' }}>Lash Designer<br />Extensão de Cílios</p>
+              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#FBF0F8', marginBottom: 4 }}>{SPECIALISTS.carol.name} ✦</p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.6)' }}>{SPECIALISTS.carol.role}<br />{SPECIALISTS.carol.specialty}</p>
             </div>
             <div>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#FBF0F8', marginBottom: 4 }}>Malu ✦</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.6)' }}>Nail Designer<br />Unhas & Manicure</p>
+              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#FBF0F8', marginBottom: 4 }}>{SPECIALISTS.malu.name} ✦</p>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.6)' }}>{SPECIALISTS.malu.role}<br />Unhas & Manicure</p>
             </div>
           </div>
 
@@ -64,10 +71,10 @@ export default function Footer() {
           <div>
             <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', marginBottom: 20 }}>Contato</p>
             {[
-              { icon: '📍', text: 'Rua Juca Pita, 15-71\nPresidente Epitácio - SP' },
-              { icon: '📱', text: 'Carol (Cílios): +55 18 98154-1288\nMalu (Unhas): +55 18 99711-6620' },
-              { icon: '⏰', text: 'Seg–Sáb: 9h às 19h' },
-              { icon: '✉️', text: 'contato@studiocm.com' },
+              { icon: '📍', text: `${STUDIO.address.street}\n${STUDIO.address.city}` },
+              { icon: '📱', text: `Carol (Cílios): ${SPECIALISTS.carol.whatsappDisplay}\nMalu (Unhas): ${SPECIALISTS.malu.whatsappDisplay}` },
+              { icon: '⏰', text: `Carol: ${describeSchedule('carol')}\nMalu: ${describeSchedule('malu')}` },
+              { icon: '✉️', text: STUDIO.email },
             ].map((c) => (
               <div key={c.icon} style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '0.9rem', marginTop: 1 }}>{c.icon}</span>
@@ -79,7 +86,7 @@ export default function Footer() {
 
         <div style={{ borderTop: '1px solid rgba(196,168,232,0.15)', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 }}>
           <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: 'rgba(251,240,248,0.4)' }}>
-            © 2024 StudioCM. Todos os direitos reservados.
+            © {new Date().getFullYear()} {STUDIO.name}. Todos os direitos reservados.
           </p>
           <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: 'rgba(251,240,248,0.4)' }}>
             Feito com ♡ para a beleza feminina

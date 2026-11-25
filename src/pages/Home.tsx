@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MAPS_URL, SPECIALISTS, STUDIO, STUDIO_ADDRESS_LINE, describeSchedule, whatsappUrl } from '@catalog'
 import maluNail1 from '@/imports/malu-nail-designer.png'
 import maluNail2 from '@/imports/malu-nail-designer-1.png'
 import maluNail3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
@@ -203,7 +204,7 @@ export default function Home() {
                 Especialista em extensão de cílios com 3+ anos de experiência. Usa técnicas europeias com materiais hipoalergênicos para um resultado natural e duradouro que vai transformar seu olhar.
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-                {['Volume Russo', 'Clássico', 'Híbrido', 'Mega Volume'].map((tag) => (
+                {SPECIALISTS.carol.highlights.map((tag) => (
                   <span key={tag} style={{ background: '#E8DAFF', color: '#7B2FBE', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
                 ))}
               </div>
@@ -234,7 +235,7 @@ export default function Home() {
                 Nail designer apaixonada por criar arte nas pontas dos dedos. Especializada em alongamentos em gel, banho de gel, esmaltação e nail art personalizada que reflete a personalidade única de cada cliente.
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-                {['Gel na Tips', 'Banho de Gel', 'Nail Art', 'Esmaltação'].map((tag) => (
+                {SPECIALISTS.malu.highlights.map((tag) => (
                   <span key={tag} style={{ background: '#FFD6ED', color: '#B94FA0', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
                 ))}
               </div>
@@ -366,9 +367,9 @@ export default function Home() {
             </div>
             <div className="reveal-left" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[
-                { icon: '📍', title: 'Endereço', content: 'Rua Juca Pita, 15-71\nPresidente Epitácio - SP' },
-                { icon: '⏰', title: 'Horário', content: 'Segunda a Sexta: 9h às 19h\nSábado: 9h às 17h' },
-                { icon: '📱', title: 'WhatsApp', content: 'Carol (Cílios): +55 18 98154-1288\nMalu (Unhas): +55 18 99711-6620' },
+                { icon: '📍', title: 'Endereço', content: `${STUDIO.address.street}\n${STUDIO.address.city}` },
+                { icon: '⏰', title: 'Horário', content: `Carol: ${describeSchedule('carol')}\nMalu: ${describeSchedule('malu')}` },
+                { icon: '📱', title: 'WhatsApp', content: `Carol (Cílios): ${SPECIALISTS.carol.whatsappDisplay}\nMalu (Unhas): ${SPECIALISTS.malu.whatsappDisplay}` },
               ].map((c) => (
                 <div key={c.icon} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                   <div style={{ width: 44, height: 44, background: 'rgba(196,168,232,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>{c.icon}</div>
@@ -380,7 +381,7 @@ export default function Home() {
               ))}
             </div>
             <div className="reveal-left" style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
+              <a href={STUDIO.social.instagram ?? 'https://instagram.com'} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
                 📸 Instagram
               </a>
               <Link to="/agendamento" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)', fontSize: '0.9rem', padding: '10px 20px' }}>
@@ -395,8 +396,8 @@ export default function Home() {
             <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
               <div style={{ fontSize: '3rem', marginBottom: 12 }}>📍</div>
               <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.2rem', color: '#C4A8E8', margin: '0 0 8px', fontWeight: 600 }}>Studio CM</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>Rua Juca Pita, 15-71 — Presidente Epitácio - SP</p>
-              <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.85rem', padding: '10px 20px' }}>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>{STUDIO_ADDRESS_LINE}</p>
+              <a href={MAPS_URL} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.85rem', padding: '10px 20px' }}>
                 Ver no Maps →
               </a>
             </div>
@@ -418,10 +419,10 @@ export default function Home() {
             <Link to="/agendamento" className="btn-pink" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Agendar meu horário ♡
             </Link>
-            <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+            <a href={whatsappUrl('carol')} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Carol — WhatsApp ✦
             </a>
-            <a href="https://wa.me/5518997116620" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+            <a href={whatsappUrl('malu')} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Malu — WhatsApp ♡
             </a>
           </div>

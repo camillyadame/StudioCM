@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { SPECIALISTS, formatPrice, servicesOf, whatsappUrl } from '@catalog'
 import carolHero from '@/imports/carol-lash-designer-v2-2.png'
 
 function useReveal(ref: React.RefObject<HTMLElement | null>) {
@@ -16,32 +17,15 @@ function useReveal(ref: React.RefObject<HTMLElement | null>) {
   }, [])
 }
 
-const APLICACOES = [
-  { name: 'Volume Light', price: 'R$ 100,00' },
-  { name: 'Volume Brasileiro', price: 'R$ 120,00' },
-  { name: 'Volume 4D', price: 'R$ 135,00' },
-  { name: 'Volume Árabe', price: 'R$ 140,00' },
-  { name: 'Volume 6D', price: 'R$ 150,00' },
-  { name: 'Fox', price: 'R$ 155,00' },
-  { name: 'Capping', price: 'R$ 185,00' },
-]
+/* Serviços e preços vêm do catálogo único (server/src/catalog.ts). */
+const toCard = (s: { name: string; price: number }) => ({ name: s.name, price: formatPrice(s.price) })
 
-const MANUTENCOES = [
-  { name: 'Manutenção Light', price: 'R$ 70,00' },
-  { name: 'Manutenção Brasileiro', price: 'R$ 80,00' },
-  { name: 'Manutenção 4D e Árabe', price: 'R$ 85,00' },
-  { name: 'Manutenção 6D', price: 'R$ 95,00' },
-  { name: 'Manutenção Fox', price: 'R$ 100,00' },
-  { name: 'Manutenção Capping', price: 'R$ 115,00' },
-]
-
-const ADICIONAIS = [
-  { name: 'Design de Sobrancelha', price: 'R$ 25,00' },
-  { name: 'Buço', price: 'R$ 15,00' },
-]
+const APLICACOES = servicesOf('carol', 'aplicacao').map(toCard)
+const MANUTENCOES = servicesOf('carol', 'manutencao').map(toCard)
+const ADICIONAIS = servicesOf('carol', 'adicional').map(toCard)
 
 const FAQ = [
-  { q: 'Quanto tempo dura a extensão?', a: 'Em média 3 a 4 semanas, dependendo do ciclo capilar de cada pessoa. Com manutenção a cada 2-3 semanas, mantém sempre perfeito!' },
+  { q: 'Quanto tempo dura a extensão?', a: `Em média 3 a 4 semanas, dependendo do ciclo capilar de cada pessoa. Com manutenção a cada ${SPECIALISTS.carol.maintenanceWindow}, mantém sempre perfeito!` },
   { q: 'Posso usar máscara de cílios por cima?', a: 'Não recomendamos! A extensão já dá todo o volume e comprimento necessários. Caso use, opte por máscaras sem óleo e aplique apenas nas pontas.' },
   { q: 'Preciso de algum cuidado especial?', a: 'Evite óleo, vapor e umidade nas primeiras 24h. Não esfregue os olhos e use escovinha diariamente para manter a forma.' },
   { q: 'É seguro para olhos sensíveis?', a: 'Sim! Usamos colas hipoalergênicas de alta qualidade. Se tiver histórico de alergia, avisamos para fazer um teste antes.' },
@@ -79,7 +63,7 @@ export default function Carol() {
             </p>
             <div className="animate-fade-up delay-500" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link to="/agendamento" className="btn-pink">Agendar com a Carol ♡</Link>
-              <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
+              <a href={whatsappUrl('carol')} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
             </div>
             <div className="animate-fade-up delay-600" style={{ display: 'flex', gap: 28, marginTop: 40 }}>
               {[{ n: '+300', l: 'clientes' }, { n: '3+', l: 'anos exp.' }, { n: '100%', l: 'satisfação' }].map((s) => (
@@ -166,7 +150,7 @@ export default function Carol() {
           <div style={{ background: '#F5EEFF', border: '1px solid rgba(196,168,232,0.4)', borderRadius: 16, padding: '14px 20px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <span style={{ color: '#7B2FBE', fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>⚠</span>
             <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
-              Manutenção de 20 a 25 dias no máximo. Após esse período, será cobrado o valor de uma nova aplicação.
+              Manutenção de {SPECIALISTS.carol.maintenanceWindow} no máximo. Após esse período, será cobrado o valor de uma nova aplicação.
             </p>
           </div>
         </div>

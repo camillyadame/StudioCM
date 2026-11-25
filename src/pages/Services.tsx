@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MALU_CATEGORIES, SPECIALISTS, formatPrice, getService, servicesOf, whatsappUrl } from '@catalog'
 import imgCapping from '@/imports/WhatsApp_Image_2026-08-11_at_23.01.43.jpeg'
 import imgFox from '@/imports/WhatsApp_Image_2026-08-11_at_23.00.14.jpeg'
 import imgVolume4D from '@/imports/WhatsApp_Image_2026-08-11_at_22.36.59.jpeg'
@@ -41,27 +42,62 @@ function useReveal(ref: React.RefObject<HTMLElement | null>, dependency?: unknow
   }, [dependency, ref])
 }
 
-const CILIOS_APLICACOES = [
-  { name: 'Volume Light', price: 'R$ 100,00', icon: '✦', img: imgVolumeLight, focus: '50% 35%' },
-  { name: 'Volume Brasileiro', price: 'R$ 120,00', icon: '✦', img: imgVolumeBrasileiro, focus: '50% 35%' },
-  { name: 'Volume 4D', price: 'R$ 135,00', icon: '✦', img: imgVolume4D, focus: '50% 32%' },
-  { name: 'Volume Árabe', price: 'R$ 140,00', icon: '✦', img: imgVolumeArabe, focus: '50% 32%' },
-  { name: 'Volume 6D', price: 'R$ 150,00', icon: '✦', img: imgVolume6D, focus: '55% 24%' },
-  { name: 'Fox', price: 'R$ 155,00', icon: '✦', img: imgFox, focus: '78% 12%' },
-  { name: 'Capping', price: 'R$ 185,00', icon: '✦', img: imgCapping, focus: '50% 68%' },
-]
-const CILIOS_MANUTENCOES = [
-  { name: 'Manutenção Light', price: 'R$ 70,00', icon: '✦' },
-  { name: 'Manutenção Brasileiro', price: 'R$ 80,00', icon: '✦' },
-  { name: 'Manutenção 4D e Árabe', price: 'R$ 85,00', icon: '✦' },
-  { name: 'Manutenção 6D', price: 'R$ 95,00', icon: '✦' },
-  { name: 'Manutenção Fox', price: 'R$ 100,00', icon: '✦' },
-  { name: 'Manutenção Capping', price: 'R$ 115,00', icon: '✦' },
-]
-const CILIOS_ADICIONAIS = [
-  { name: 'Design de Sobrancelha', price: 'R$ 25,00', icon: '✦' },
-  { name: 'Buço', price: 'R$ 15,00', icon: '✦' },
-]
+/* Fotos reais da Galeria, associadas ao serviço pelo id do catálogo. */
+const SERVICE_PHOTOS: Record<string, { img: string; focus?: string }> = {
+  'carol-volume-light': { img: imgVolumeLight, focus: '50% 35%' },
+  'carol-volume-brasileiro': { img: imgVolumeBrasileiro, focus: '50% 35%' },
+  'carol-volume-4d': { img: imgVolume4D, focus: '50% 32%' },
+  'carol-volume-arabe': { img: imgVolumeArabe, focus: '50% 32%' },
+  'carol-volume-6d': { img: imgVolume6D, focus: '55% 24%' },
+  'carol-fox': { img: imgFox, focus: '78% 12%' },
+  'carol-capping': { img: imgCapping, focus: '50% 68%' },
+  'malu-along-simples': { img: maluG1 },
+  'malu-along-nailart': { img: maluG2 },
+  'malu-banho-simples': { img: maluG3 },
+  'malu-banho-nailart': { img: maluG3 },
+  'malu-postica-simples': { img: maluG4 },
+  'malu-postica-nailart': { img: maluG4 },
+}
+
+const toCiliosCard = (s: { id: string; name: string; price: number }) => ({
+  name: s.name,
+  price: formatPrice(s.price),
+  icon: '✦',
+  ...SERVICE_PHOTOS[s.id],
+})
+
+const CILIOS_APLICACOES = servicesOf('carol', 'aplicacao').map(toCiliosCard)
+const CILIOS_MANUTENCOES = servicesOf('carol', 'manutencao').map(toCiliosCard)
+const CILIOS_ADICIONAIS = servicesOf('carol', 'adicional').map(toCiliosCard)
+
+/* Um card por modalidade da Malu, com aplicação, manutenção e tempo vindos do catálogo. */
+const UNHAS = MALU_CATEGORIES.flatMap((cat) =>
+  cat.variants.map((v) => {
+    const service = getService(v.serviceId)
+    const maintenance = v.maintenanceServiceId ? getService(v.maintenanceServiceId) : null
+    const single = cat.variants.length === 1
+    const showLabel = single && v.label !== service.name
+    const desc = [
+      showLabel ? v.label : null,
+      showLabel ? formatPrice(service.price) : single ? null : `Aplicação: ${formatPrice(service.price)}`,
+      maintenance ? `Manutenção: ${formatPrice(maintenance.price)}` : null,
+      service.durationLabel ?? null,
+      cat.durability ? `Durabilidade ${cat.durability}` : null,
+      !cat.hasMaintenance && cat.durability ? 'Sem manutenção' : null,
+      cat.warning ? cat.warning.replace(/\.$/, '') : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    return {
+      name: single ? service.name : `${cat.shortTitle} — ${v.label}`,
+      desc,
+      price: formatPrice(service.price),
+      time: service.durationLabel ?? '',
+      icon: '♡',
+      img: SERVICE_PHOTOS[v.serviceId]?.img,
+    }
+  }),
+)
 
 const ALL_SERVICES = {
   cilios: [
@@ -69,16 +105,7 @@ const ALL_SERVICES = {
     ...CILIOS_MANUTENCOES,
     ...CILIOS_ADICIONAIS,
   ],
-  unhas: [
-    { name: 'Alongamento Gel na Tips — Simples / Decoração simples', desc: 'Aplicação: R$ 110,00 · Manutenção: R$ 90,00 · até 2h15', price: 'R$ 110,00', time: 'até 2h15', icon: '♡', img: maluG1 },
-    { name: 'Alongamento Gel na Tips — Nail Art / Decorações 3D', desc: 'Aplicação: R$ 130,00 · Manutenção: R$ 110,00 · até 3h', price: 'R$ 130,00', time: 'até 3h', icon: '♡', img: maluG2 },
-    { name: 'Banho de Gel — Simples / Decoração simples', desc: 'Aplicação: R$ 90,00 · Manutenção: R$ 75,00 · até 2h · NÃO ALONGA AS UNHAS', price: 'R$ 90,00', time: 'até 2h', icon: '♡', img: maluG3 },
-    { name: 'Banho de Gel — Nail Art / Decoração 3D', desc: 'Aplicação: R$ 95,00 · Manutenção: R$ 80,00 · até 2h · NÃO ALONGA AS UNHAS', price: 'R$ 95,00', time: 'até 2h', icon: '♡', img: maluG3 },
-    { name: 'Postiça Realista — Simples / Decoração simples', desc: 'Aplicação: R$ 60,00 · até 2h · Durabilidade até 25 dias · Sem manutenção', price: 'R$ 60,00', time: 'até 2h', icon: '♡', img: maluG4 },
-    { name: 'Postiça Realista — Nail Art / Decoração 3D', desc: 'Aplicação: R$ 70,00 · até 2h · Durabilidade até 25 dias · Sem manutenção', price: 'R$ 70,00', time: 'até 2h', icon: '♡', img: maluG4 },
-    { name: 'Esmaltação em Gel nas Unhas Naturais', desc: 'Simples ou decorada · R$ 60,00 · 1h30 a 2h · Durabilidade até 25 dias · Sem manutenção', price: 'R$ 60,00', time: '1h30 a 2h', icon: '♡' },
-    { name: 'Pedicure e Manicure', desc: '', price: 'R$ 110,00', time: '', icon: '♡' },
-  ],
+  unhas: UNHAS,
 }
 
 export default function Services() {
@@ -171,7 +198,7 @@ export default function Services() {
             ))}
             <div className="reveal" style={{ background: 'rgba(123,47,190,0.06)', border: '1.5px solid rgba(123,47,190,0.18)', borderRadius: 16, padding: '16px 20px' }}>
               <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#7B2FBE', margin: 0, lineHeight: 1.6 }}>
-                ⚠️ <strong>Atenção:</strong> A manutenção deve ser feita dentro do prazo recomendado (3 a 4 semanas). Fora do prazo, cobra-se valor de aplicação.
+                ⚠️ <strong>Atenção:</strong> A manutenção deve ser feita dentro do prazo recomendado ({SPECIALISTS.carol.maintenanceWindow}). Fora do prazo, cobra-se valor de aplicação.
               </p>
             </div>
           </div>
@@ -224,7 +251,7 @@ export default function Services() {
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/agendamento" className="btn-pink">Agendar meu horário ♡</Link>
-            <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary">Falar no WhatsApp →</a>
+            <a href={whatsappUrl('carol')} target="_blank" rel="noopener noreferrer" className="btn-secondary">Falar no WhatsApp →</a>
           </div>
         </div>
       </section>

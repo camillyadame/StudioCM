@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { MALU_CATEGORIES, SPECIALISTS, formatPrice, getService, whatsappUrl } from '@catalog'
 import maluHero from '@/imports/malu-nail-designer-2.png'
 import maluInspo1 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
 import maluInspo2 from '@/imports/WhatsApp_Image_2026-08-09_at_18.56.19.jpeg'
@@ -20,53 +21,38 @@ function useReveal(ref: React.RefObject<HTMLElement | null>) {
   }, [])
 }
 
-const CATEGORIAS_MALU = [
-  {
-    category: 'Alongamento de Unhas — Gel na Tips',
-    time: 'até 2h15 (Simples) / até 3h (Nail Art)',
-    manutencaoPeriodo: '15 a 30 dias',
-    variants: [
-      { name: 'Simples / Decoração simples', aplicacao: 'R$ 115,00', manutencao: 'R$ 90,00' },
-      { name: 'Nail Art / Decorações 3D', aplicacao: 'R$ 130,00', manutencao: 'R$ 110,00' },
-    ],
-  },
-  {
-    category: 'Banho de Gel',
-    warning: 'NÃO ALONGA AS UNHAS.',
-    time: 'até 2h',
-    manutencaoPeriodo: '15 a 30 dias',
-    variants: [
-      { name: 'Simples / Decoração simples', aplicacao: 'R$ 90,00', manutencao: 'R$ 75,00' },
-      { name: 'Nail Art / Decoração 3D', aplicacao: 'R$ 95,00', manutencao: 'R$ 80,00' },
-    ],
-  },
-  {
-    category: 'Postiça Realista',
-    time: 'até 2h',
-    durabilidade: 'até 25 dias',
-    semManutencao: true,
-    variants: [
-      { name: 'Simples / Decoração simples', aplicacao: 'R$ 60,00' },
-      { name: 'Nail Art / Decoração 3D', aplicacao: 'R$ 70,00' },
-    ],
-  },
-  {
-    category: 'Esmaltação em Gel nas Unhas Naturais',
-    time: '1h30 a 2h',
-    durabilidade: 'até 25 dias',
-    semManutencao: true,
-    note: 'Realizado nas unhas naturais. Não é um alongamento.',
-    variants: [
-      { name: 'Simples ou decorada', aplicacao: 'R$ 60,00' },
-    ],
-  },
-  {
-    category: 'Pedicure e Manicure',
-    variants: [
-      { name: 'Pedicure e Manicure', aplicacao: 'R$ 110,00' },
-    ],
-  },
-]
+/* Categorias, preços e tempos vêm do catálogo único (server/src/catalog.ts). */
+const CATEGORIAS_MALU = MALU_CATEGORIES.map((cat) => {
+  const services = cat.variants.map((v) => getService(v.serviceId))
+  const labels = services.map((s) => s.durationLabel)
+  const knownLabels = labels.filter((l): l is string => Boolean(l))
+  const allSame = knownLabels.length > 0 && knownLabels.every((l) => l === knownLabels[0])
+  const time =
+    knownLabels.length === 0
+      ? undefined
+      : allSame
+        ? knownLabels[0]
+        : cat.variants
+            .map((v, i) => (labels[i] ? `${labels[i]} (${v.shortLabel ?? v.label})` : null))
+            .filter(Boolean)
+            .join(' / ')
+
+  return {
+    category: cat.title,
+    ...(cat.description ? { description: cat.description } : {}),
+    ...(cat.warning ? { warning: cat.warning } : {}),
+    ...(time ? { time } : {}),
+    ...(cat.hasMaintenance ? { manutencaoPeriodo: SPECIALISTS.malu.maintenanceWindow } : {}),
+    ...(cat.durability ? { durabilidade: cat.durability } : {}),
+    ...(!cat.hasMaintenance && cat.durability ? { semManutencao: true } : {}),
+    ...(cat.note ? { note: cat.note } : {}),
+    variants: cat.variants.map((v, i) => ({
+      name: v.label,
+      aplicacao: formatPrice(services[i].price),
+      ...(v.maintenanceServiceId ? { manutencao: formatPrice(getService(v.maintenanceServiceId).price) } : {}),
+    })),
+  }
+})
 
 const INSPO = [
   { url: maluInspo1, alt: 'French com leopard' },
@@ -107,7 +93,7 @@ export default function Malu() {
             </p>
             <div className="animate-fade-up delay-500" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link to="/agendamento" className="btn-primary" style={{ background: 'white', color: '#E0198A' }}>Agendar com a Malu ♡</Link>
-              <a href="https://wa.me/5518997116620" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
+              <a href={whatsappUrl('malu')} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}>WhatsApp →</a>
             </div>
             <div className="animate-fade-up delay-600" style={{ display: 'flex', gap: 28, marginTop: 40 }}>
               {[{ n: '+10', l: 'serviços disponíveis' }, { n: '100%', l: 'personalizado' }, { n: '5★', l: 'avaliação' }].map((s) => (
@@ -180,6 +166,13 @@ export default function Malu() {
                   <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', background: '#FFD6ED', padding: '4px 18px', borderRadius: 50, whiteSpace: 'nowrap' }}>♡ {grupo.category}</span>
                   <div style={{ flex: 1, height: 1, background: 'rgba(224,25,138,0.18)' }} />
                 </div>
+
+                {/* Descrição da categoria (ex: Banho de Gel) */}
+                {'description' in grupo && (
+                  <div className="reveal" style={{ marginBottom: 16 }}>
+                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', lineHeight: 1.6, margin: 0, maxWidth: 760 }}>{grupo.description as string}</p>
+                  </div>
+                )}
 
                 {/* Warning da categoria (ex: Banho de Gel) */}
                 {'warning' in grupo && (
