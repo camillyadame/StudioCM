@@ -45,8 +45,12 @@ Tarefas agendadas (cabeçalho `Authorization: Bearer $CRON_SECRET`):
 - `POST /api/jobs/reconcile`: confere no provedor os pagamentos das últimas
   48 h, cobrindo webhooks perdidos.
 
-Na Vercel, o cron de 1 minuto provavelmente exige plano pago; por isso a
-expiração não depende dele. Um cron diário de conciliação já cobre o resto.
+A API roda na **Render** como serviço contínuo, então essas tarefas também
+rodam dentro do próprio processo (`src/pix/scheduler.ts`): expiração a cada
+minuto e conciliação a cada hora. Se o serviço dormir (plano gratuito da
+Render hiberna sem tráfego), a expiração acontece na primeira consulta e o
+Mercado Pago reenvia o webhook que encontrar o serviço acordando. As rotas
+`/api/jobs/*` ficam disponíveis para um agendador externo, se necessário.
 
 ## Estados
 
@@ -64,7 +68,7 @@ Qualquer outra transição lança `InvalidTransitionError` (`src/domain/states.t
 
 Variáveis em `server/.env.example`. Passos para o sandbox:
 
-1. Criar um Postgres (ex.: Neon ou Supabase, plano gratuito) e pôr a URL em
+1. Criar um Postgres (Render Postgres, Neon ou Supabase) e pôr a URL em
    `DATABASE_URL`. A extensão `btree_gist` precisa estar disponível.
 2. `cd server && npm run db:migrate && npm run db:seed`.
 3. Cadastrar a conta recebedora de cada profissional:

@@ -22,7 +22,12 @@ app.use(express.json())
 {
   const { pixMode, buildDeps, createPixRouter } = await import('./pix/router.js')
   if (pixMode() !== 'off') {
-    app.use(createPixRouter(buildDeps()))
+    const deps = buildDeps()
+    app.use(createPixRouter(deps))
+    // A API roda como serviço contínuo (Render): as tarefas rodam aqui mesmo.
+    // Se o serviço dormir, a expiração "preguiçosa" e a conciliação cobrem.
+    const { startScheduler } = await import('./pix/scheduler.js')
+    startScheduler(deps)
     console.log(`Fluxo Pix ativo em modo ${pixMode()}.`)
   }
 }
