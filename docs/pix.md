@@ -127,8 +127,8 @@ de pagamento e do painel.
   (`id:…;request-id:…;ts:…;`) segue a documentação do Mercado Pago e precisa
   ser validado com um webhook real do sandbox.
 - **Expiração de 10 min:** confirmar que `date_of_expiration` curto é aceito.
-- Erros de tipo antigos em `src/server.ts` (anteriores a esta etapa) seguem
-  como estavam.
+- **Limite de requisições:** as rotas `/api/v2/*` ainda não usam os limites
+  por IP/telefone de `protection.ts`. Ligar antes de `PIX_MODE=sandbox`.
 
 ## Próximas etapas
 
