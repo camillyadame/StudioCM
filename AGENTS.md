@@ -7,7 +7,7 @@ Site do Studio CM (estúdio de beleza) com agendamento integrado ao Google Calen
 - `src/` front-end em React 19 + TypeScript + Vite + Tailwind CSS v4
   - `src/pages/` páginas (Home, Serviços, Galeria, Agendamento e as páginas da Carol e da Malu)
   - `src/components/` componentes compartilhados
-  - `src/data/` conteúdo estático (serviços, fotos de trabalhos)
+  - `src/data/` conteúdo estático (fotos de trabalhos)
   - `src/assets/equipe/` e `src/assets/trabalhos/` imagens usadas no site
 - `server/` API em Node.js + Express 5
   - `server/src/server.ts` rotas, disponibilidade, pré-reservas e rotina de expiração
