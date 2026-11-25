@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MAPS_URL, SPECIALISTS, STUDIO, STUDIO_ADDRESS_LINE, describeSchedule, whatsappUrl } from '@catalog'
 import maluNail1 from '@/imports/malu-nail-designer.png'
 import maluNail2 from '@/imports/malu-nail-designer-1.png'
 import maluNail3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
@@ -30,12 +31,6 @@ const TESTIMONIALS = [
   { name: 'Fernanda Luz', role: 'Cliente há 6 meses', text: 'Indico para todas as minhas amigas! A qualidade dos materiais é outra e o resultado fica perfeito por semanas. Vale cada centavo.', avatar: '👩🏼', color: '#FFD6ED' },
 ]
 
-const PROMOS = [
-  { title: 'Primeira Visita', desc: 'Ganhe 20% de desconto no seu primeiro serviço', code: 'PRIMEIRAVEZ', color: '#E0198A', badge: 'NOVIDADE' },
-  { title: 'Cílios + Unhas', desc: 'Combo completo com 15% off nos dois serviços', code: 'COMBO15', color: '#B94FA0', badge: 'MAIS PEDIDO' },
-  { title: 'Indique e Ganhe', desc: 'Traga uma amiga e ganhe R$10 de crédito', code: 'AMIGA10', color: '#7B2FBE', badge: 'FIDELIDADE' },
-]
-
 function Sparkle({ style }: { style?: React.CSSProperties }) {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style={{ ...style, animation: 'sparkle 2.5s ease-in-out infinite' }}>
@@ -47,13 +42,6 @@ function Sparkle({ style }: { style?: React.CSSProperties }) {
 export default function Home() {
   const pageRef = useRef<HTMLDivElement>(null)
   useReveal(pageRef)
-  const [copiedCode, setCopiedCode] = useState<string | null>(null)
-
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedCode(code)
-    setTimeout(() => setCopiedCode(null), 2000)
-  }
 
   return (
     <div ref={pageRef}>
@@ -99,7 +87,6 @@ export default function Home() {
             {/* Stats */}
             <div className="animate-fade-up delay-500 home-hero-stats" style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
               {[
-                { n: '+500', label: 'clientes atendidas' },
                 { n: '5 ★', label: 'avaliação média' },
                 { n: '3+', label: 'anos de experiência' },
               ].map((s) => (
@@ -203,7 +190,7 @@ export default function Home() {
                 Especialista em extensão de cílios com 3+ anos de experiência. Usa técnicas europeias com materiais hipoalergênicos para um resultado natural e duradouro que vai transformar seu olhar.
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-                {['Volume Russo', 'Clássico', 'Híbrido', 'Mega Volume'].map((tag) => (
+                {SPECIALISTS.carol.highlights.map((tag) => (
                   <span key={tag} style={{ background: '#E8DAFF', color: '#7B2FBE', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
                 ))}
               </div>
@@ -234,7 +221,7 @@ export default function Home() {
                 Nail designer apaixonada por criar arte nas pontas dos dedos. Especializada em alongamentos em gel, banho de gel, esmaltação e nail art personalizada que reflete a personalidade única de cada cliente.
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-                {['Gel na Tips', 'Banho de Gel', 'Nail Art', 'Esmaltação'].map((tag) => (
+                {SPECIALISTS.malu.highlights.map((tag) => (
                   <span key={tag} style={{ background: '#FFD6ED', color: '#B94FA0', fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 50 }}>{tag}</span>
                 ))}
               </div>
@@ -279,45 +266,6 @@ export default function Home() {
               />
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ─── PROMOÇÕES ─────────────────────────────────────────────────── */}
-      <section className="home-section home-promos-section" style={{ background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF)', padding: '100px 24px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
-            <span className="section-label">Promoções & Cupons</span>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 12px' }}>
-              Ofertas <span className="gradient-text">especiais</span> pra você
-            </h2>
-            <p style={{ fontFamily: "'Nunito', sans-serif", color: '#8B5A7A', fontSize: '1rem' }}>
-              Aproveite nossas promoções e ganhe muito mais por menos!
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-            {PROMOS.map((p, i) => (
-              <div key={p.code} className="reveal" style={{ background: 'white', borderRadius: 24, overflow: 'hidden', boxShadow: '0 8px 30px rgba(45,8,32,0.08)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 50px rgba(45,8,32,0.12)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 30px rgba(45,8,32,0.08)'; }}
-              >
-                <div style={{ background: p.color, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
-                  <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 50, letterSpacing: '0.08em' }}>{p.badge}</span>
-                  <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.5rem', color: 'white', margin: '12px 0 4px' }}>{p.title}</h3>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.5 }}>{p.desc}</p>
-                </div>
-                <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between' }}>
-                  <div style={{ background: '#FBF0F8', border: `2px dashed ${p.color}`, borderRadius: 10, padding: '8px 16px', flex: 1 }}>
-                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: p.color, letterSpacing: '0.1em' }}>{p.code}</span>
-                  </div>
-                  <button onClick={() => copyCode(p.code)} style={{ background: p.color, color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
-                    {copiedCode === p.code ? '✓ Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -366,9 +314,9 @@ export default function Home() {
             </div>
             <div className="reveal-left" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[
-                { icon: '📍', title: 'Endereço', content: 'Rua Juca Pita, 15-71\nPresidente Epitácio - SP' },
-                { icon: '⏰', title: 'Horário', content: 'Segunda a Sexta: 9h às 19h\nSábado: 9h às 17h' },
-                { icon: '📱', title: 'WhatsApp', content: 'Carol (Cílios): +55 18 98154-1288\nMalu (Unhas): +55 18 99711-6620' },
+                { icon: '📍', title: 'Endereço', content: `${STUDIO.address.street}\n${STUDIO.address.city}` },
+                { icon: '⏰', title: 'Horário', content: `Carol: ${describeSchedule('carol')}\nMalu: ${describeSchedule('malu')}` },
+                { icon: '📱', title: 'WhatsApp', content: `Carol (Cílios): ${SPECIALISTS.carol.whatsappDisplay}\nMalu (Unhas): ${SPECIALISTS.malu.whatsappDisplay}` },
               ].map((c) => (
                 <div key={c.icon} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                   <div style={{ width: 44, height: 44, background: 'rgba(196,168,232,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>{c.icon}</div>
@@ -380,8 +328,11 @@ export default function Home() {
               ))}
             </div>
             <div className="reveal-left" style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
-                📸 Instagram
+              <a href={SPECIALISTS.carol.instagram} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
+                📸 Instagram Carol
+              </a>
+              <a href={SPECIALISTS.malu.instagram} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
+                📸 Instagram Malu
               </a>
               <Link to="/agendamento" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)', fontSize: '0.9rem', padding: '10px 20px' }}>
                 Agendar →
@@ -395,8 +346,8 @@ export default function Home() {
             <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
               <div style={{ fontSize: '3rem', marginBottom: 12 }}>📍</div>
               <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.2rem', color: '#C4A8E8', margin: '0 0 8px', fontWeight: 600 }}>Studio CM</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>Rua Juca Pita, 15-71 — Presidente Epitácio - SP</p>
-              <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.85rem', padding: '10px 20px' }}>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.6)', margin: '0 0 20px' }}>{STUDIO_ADDRESS_LINE}</p>
+              <a href={MAPS_URL} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.85rem', padding: '10px 20px' }}>
                 Ver no Maps →
               </a>
             </div>
@@ -418,10 +369,10 @@ export default function Home() {
             <Link to="/agendamento" className="btn-pink" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Agendar meu horário ♡
             </Link>
-            <a href="https://wa.me/5518981541288" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+            <a href={whatsappUrl('carol')} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Carol — WhatsApp ✦
             </a>
-            <a href="https://wa.me/5518997116620" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
+            <a href={whatsappUrl('malu')} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ fontSize: '1.05rem', padding: '16px 36px' }}>
               Malu — WhatsApp ♡
             </a>
           </div>
