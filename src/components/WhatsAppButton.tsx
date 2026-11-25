@@ -1,19 +1,12 @@
+import { SPECIALISTS, SPECIALIST_IDS, whatsappUrl } from '@catalog'
 import { useState } from 'react'
 
-const contacts = [
-  {
-    name: 'Carol',
-    role: 'Cílios',
-    phone: '5518981541288',
-    message: 'Olá, Carol! Vim pelo site do StudioCM e gostaria de falar sobre um horário ♡',
-  },
-  {
-    name: 'Malu',
-    role: 'Unhas',
-    phone: '5518997116620',
-    message: 'Olá, Malu! Vim pelo site do StudioCM e gostaria de falar sobre um horário ♡',
-  },
-]
+const contacts = SPECIALIST_IDS.map((id) => ({
+  id,
+  name: SPECIALISTS[id].name,
+  role: id === 'carol' ? 'Cílios' : 'Unhas',
+  message: `Olá, ${SPECIALISTS[id].name}! Vim pelo site do StudioCM e gostaria de falar sobre um horário ♡`,
+}))
 
 export default function WhatsAppButton() {
   const [hovered, setHovered] = useState(false)
@@ -58,7 +51,7 @@ export default function WhatsAppButton() {
           {contacts.map((contact) => (
             <a
               key={contact.name}
-              href={`https://wa.me/${contact.phone}?text=${encodeURIComponent(contact.message)}`}
+              href={whatsappUrl(contact.id, contact.message)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}

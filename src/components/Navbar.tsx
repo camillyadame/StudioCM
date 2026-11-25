@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
+const LINKS = [
+  { to: '/', label: 'Início' },
+  { to: '/servicos', label: 'Serviços' },
+  { to: '/carol', label: 'Carol' },
+  { to: '/malu', label: 'Malu' },
+  { to: '/galeria', label: 'Galeria' },
+]
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -8,7 +16,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
+    window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
 
     return () => window.removeEventListener('scroll', onScroll)
@@ -26,14 +34,6 @@ export default function Navbar() {
     }
   }, [open])
 
-  const links = [
-    { to: '/', label: 'Início' },
-    { to: '/servicos', label: 'Serviços' },
-    { to: '/carol', label: 'Carol' },
-    { to: '/malu', label: 'Malu' },
-    { to: '/galeria', label: 'Galeria' },
-  ]
-
   return (
     <nav
       className={`site-navbar ${scrolled || open ? 'site-navbar-solid' : ''}`}
@@ -41,19 +41,18 @@ export default function Navbar() {
     >
       <div className="site-navbar-inner">
         <Link to="/" className="site-logo" aria-label="Studio CM — início">
-          <span className="site-logo-studio">Studio</span>
+          <span>Studio</span>
           <span className="site-logo-cm">CM</span>
-          <span className="site-logo-heart">♡</span>
+          <span className="site-logo-heart" aria-hidden="true">♡</span>
         </Link>
 
         <div className="site-nav-desktop">
-          {links.map((link) => (
+          {LINKS.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`nav-link ${
-                location.pathname === link.to ? 'active' : ''
-              }`}
+              className={`nav-link ${location.pathname === link.to ? 'active' : ''}`}
+              aria-current={location.pathname === link.to ? 'page' : undefined}
             >
               {link.label}
             </Link>
@@ -61,8 +60,8 @@ export default function Navbar() {
         </div>
 
         <div className="site-navbar-actions">
-          <Link to="/agendamento" className="btn-pink site-navbar-booking">
-            Agendar horário ♡
+          <Link to="/agendamento" className="btn-primary site-navbar-booking">
+            Agendar horário
           </Link>
 
           <button
@@ -85,23 +84,22 @@ export default function Navbar() {
         className={`site-mobile-menu ${open ? 'is-open' : ''}`}
       >
         <div className="site-mobile-menu-inner">
-          {links.map((link) => (
+          {LINKS.map((link, i) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`site-mobile-link ${
-                location.pathname === link.to ? 'active' : ''
-              }`}
+              className={`site-mobile-link ${location.pathname === link.to ? 'active' : ''}`}
+              aria-current={location.pathname === link.to ? 'page' : undefined}
             >
-              {link.label}
+              <span>{link.label}</span>
+              <span className="ed-eyebrow" style={{ fontFamily: 'var(--font-sans)' }}>
+                {String(i + 1).padStart(2, '0')}
+              </span>
             </Link>
           ))}
 
-          <Link
-            to="/agendamento"
-            className="btn-pink site-mobile-booking"
-          >
-            Agendar horário ♡
+          <Link to="/agendamento" className="btn-primary site-mobile-booking">
+            Agendar horário
           </Link>
         </div>
       </div>
