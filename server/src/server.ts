@@ -55,6 +55,23 @@ app.use(
 )
 app.use(express.json({ limit: '10kb' }))
 
+/*
+  Fluxo novo de pré-reserva com Pix automático (StudioCM 2.0). Desligado por
+  padrão: só entra com PIX_MODE = fake | sandbox | live. Ver docs/pix.md.
+*/
+{
+  const { pixMode, buildDeps, createPixRouter } = await import('./pix/router.js')
+  if (pixMode() !== 'off') {
+    const deps = buildDeps()
+    app.use(createPixRouter(deps))
+    // A API roda como serviço contínuo (Render): as tarefas rodam aqui mesmo.
+    // Se o serviço dormir, a expiração "preguiçosa" e a conciliação cobrem.
+    const { startScheduler } = await import('./pix/scheduler.js')
+    startScheduler(deps)
+    console.log(`Fluxo Pix ativo em modo ${pixMode()}.`)
+  }
+}
+
 const PORT = Number(process.env.PORT ?? 3001)
 
 const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE
