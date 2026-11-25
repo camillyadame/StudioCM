@@ -41,6 +41,8 @@ export type Specialist = {
   whatsapp: string
   whatsappDisplay: string
   pixKey: string
+  instagram: string
+  instagramHandle: string
   deposit: DepositRule
   /** Horário de atendimento usado pela agenda. */
   schedule: WeeklySchedule
@@ -77,13 +79,6 @@ export const STUDIO = {
     street: 'Rua Juca Pita, 15-71',
     city: 'Presidente Epitácio - SP',
   },
-  email: 'contato@studiocm.com', // A CONFIRMAR: parece um e-mail de exemplo
-  /** Perfis nas redes. `null` = ainda sem link real. */
-  social: {
-    instagram: null as string | null, // A CONFIRMAR
-    tiktok: null as string | null, // A CONFIRMAR
-    facebook: null as string | null, // A CONFIRMAR
-  },
 }
 
 export const STUDIO_ADDRESS_LINE = `${STUDIO.address.street} — ${STUDIO.address.city}`
@@ -103,6 +98,8 @@ export const SPECIALISTS: Record<SpecialistId, Specialist> = {
     whatsapp: '5518981541288',
     whatsappDisplay: '+55 18 98154-1288',
     pixKey: '62328697000181',
+    instagram: 'https://www.instagram.com/carolnovellobeauty/',
+    instagramHandle: '@carolnovellobeauty',
     deposit: { type: 'percent', value: 30 },
     schedule: {
       0: null,
@@ -113,7 +110,6 @@ export const SPECIALISTS: Record<SpecialistId, Specialist> = {
       5: { start: '09:00', end: '18:00' },
       6: { start: '09:00', end: '14:00' },
     },
-    // A CONFIRMAR: o site dizia "20 a 25 dias", "3 a 4 semanas" e "2-3 semanas"
     maintenanceWindow: '20 a 25 dias',
     highlights: ['Volume Brasileiro', 'Volume 4D', 'Fox', 'Capping'],
   },
@@ -125,6 +121,8 @@ export const SPECIALISTS: Record<SpecialistId, Specialist> = {
     whatsapp: '5518997116620',
     whatsappDisplay: '+55 18 99711-6620',
     pixKey: 'Adamemarialuiza@gmail.com',
+    instagram: 'https://www.instagram.com/atelie_marialuizaadame/',
+    instagramHandle: '@atelie_marialuizaadame',
     deposit: { type: 'fixed', value: 30 },
     schedule: {
       0: null,
@@ -179,9 +177,8 @@ export const SERVICES: Service[] = [
   { id: 'carol-manut-capping', specialist: 'carol', kind: 'manutencao', name: 'Manutenção Capping', price: 115, durationMinutes: 60 },
 
   // Carol — adicionais
-  // A CONFIRMAR: 90 min parece muito para sobrancelha e buço
-  { id: 'carol-sobrancelha', specialist: 'carol', kind: 'adicional', name: 'Design de Sobrancelha', price: 25, durationMinutes: 90 },
-  { id: 'carol-buco', specialist: 'carol', kind: 'adicional', name: 'Buço', price: 15, durationMinutes: 90 },
+  { id: 'carol-sobrancelha', specialist: 'carol', kind: 'adicional', name: 'Design de Sobrancelha', price: 25, durationMinutes: 50 },
+  { id: 'carol-buco', specialist: 'carol', kind: 'adicional', name: 'Buço', price: 15, durationMinutes: 50 },
 
   // Malu
   { id: 'malu-along-simples', specialist: 'malu', kind: 'aplicacao', name: 'Alongamento Gel na Tips — Simples / Decoração simples', price: 115, durationMinutes: 135, durationLabel: 'até 2h15' },

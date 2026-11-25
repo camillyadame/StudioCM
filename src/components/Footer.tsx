@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom'
 import { SPECIALISTS, STUDIO, describeSchedule } from '@catalog'
 
-const SOCIAL_LINKS: { label: string; url: string | null }[] = [
-  { label: 'Instagram', url: STUDIO.social.instagram },
-  { label: 'TikTok', url: STUDIO.social.tiktok },
-  { label: 'Facebook', url: STUDIO.social.facebook },
+const SOCIAL_LINKS = [
+  { label: `Instagram da ${SPECIALISTS.carol.name}`, initial: 'C', url: SPECIALISTS.carol.instagram },
+  { label: `Instagram da ${SPECIALISTS.malu.name}`, initial: 'M', url: SPECIALISTS.malu.instagram },
 ]
 
 export default function Footer() {
@@ -23,12 +22,12 @@ export default function Footer() {
               Onde beleza vira arte. Cílios e unhas que contam a sua história.
             </p>
             <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-              {SOCIAL_LINKS.map(({ label: s, url }) => (
-                <a key={s} href={url ?? '#'} aria-label={s} {...(url ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(196,168,232,0.15)', border: '1px solid rgba(196,168,232,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#C4A8E8', fontSize: '0.7rem', fontFamily: "'Fredoka', sans-serif", transition: 'all 0.3s', fontWeight: 600 }}
+              {SOCIAL_LINKS.map(({ label: s, initial, url }) => (
+                <a key={s} href={url} aria-label={s} title={s} target="_blank" rel="noopener noreferrer" style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(196,168,232,0.15)', border: '1px solid rgba(196,168,232,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#C4A8E8', fontSize: '0.7rem', fontFamily: "'Fredoka', sans-serif", transition: 'all 0.3s', fontWeight: 600 }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E0198A'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(196,168,232,0.15)'; (e.currentTarget as HTMLElement).style.color = '#C4A8E8'; }}
                 >
-                  {s[0]}
+                  {initial}
                 </a>
               ))}
             </div>
@@ -74,7 +73,7 @@ export default function Footer() {
               { icon: '📍', text: `${STUDIO.address.street}\n${STUDIO.address.city}` },
               { icon: '📱', text: `Carol (Cílios): ${SPECIALISTS.carol.whatsappDisplay}\nMalu (Unhas): ${SPECIALISTS.malu.whatsappDisplay}` },
               { icon: '⏰', text: `Carol: ${describeSchedule('carol')}\nMalu: ${describeSchedule('malu')}` },
-              { icon: '✉️', text: STUDIO.email },
+              { icon: '📸', text: `Carol: ${SPECIALISTS.carol.instagramHandle}\nMalu: ${SPECIALISTS.malu.instagramHandle}` },
             ].map((c) => (
               <div key={c.icon} style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '0.9rem', marginTop: 1 }}>{c.icon}</span>

@@ -31,12 +31,6 @@ const TESTIMONIALS = [
   { name: 'Fernanda Luz', role: 'Cliente há 6 meses', text: 'Indico para todas as minhas amigas! A qualidade dos materiais é outra e o resultado fica perfeito por semanas. Vale cada centavo.', avatar: '👩🏼', color: '#FFD6ED' },
 ]
 
-const PROMOS = [
-  { title: 'Primeira Visita', desc: 'Ganhe 20% de desconto no seu primeiro serviço', code: 'PRIMEIRAVEZ', color: '#E0198A', badge: 'NOVIDADE' },
-  { title: 'Cílios + Unhas', desc: 'Combo completo com 15% off nos dois serviços', code: 'COMBO15', color: '#B94FA0', badge: 'MAIS PEDIDO' },
-  { title: 'Indique e Ganhe', desc: 'Traga uma amiga e ganhe R$10 de crédito', code: 'AMIGA10', color: '#7B2FBE', badge: 'FIDELIDADE' },
-]
-
 function Sparkle({ style }: { style?: React.CSSProperties }) {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style={{ ...style, animation: 'sparkle 2.5s ease-in-out infinite' }}>
@@ -48,13 +42,6 @@ function Sparkle({ style }: { style?: React.CSSProperties }) {
 export default function Home() {
   const pageRef = useRef<HTMLDivElement>(null)
   useReveal(pageRef)
-  const [copiedCode, setCopiedCode] = useState<string | null>(null)
-
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedCode(code)
-    setTimeout(() => setCopiedCode(null), 2000)
-  }
 
   return (
     <div ref={pageRef}>
@@ -100,7 +87,6 @@ export default function Home() {
             {/* Stats */}
             <div className="animate-fade-up delay-500 home-hero-stats" style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
               {[
-                { n: '+500', label: 'clientes atendidas' },
                 { n: '5 ★', label: 'avaliação média' },
                 { n: '3+', label: 'anos de experiência' },
               ].map((s) => (
@@ -283,45 +269,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── PROMOÇÕES ─────────────────────────────────────────────────── */}
-      <section className="home-section home-promos-section" style={{ background: 'linear-gradient(135deg, #FBF0F8, #E8DAFF)', padding: '100px 24px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
-            <span className="section-label">Promoções & Cupons</span>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#2D0820', margin: '16px 0 12px' }}>
-              Ofertas <span className="gradient-text">especiais</span> pra você
-            </h2>
-            <p style={{ fontFamily: "'Nunito', sans-serif", color: '#8B5A7A', fontSize: '1rem' }}>
-              Aproveite nossas promoções e ganhe muito mais por menos!
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-            {PROMOS.map((p, i) => (
-              <div key={p.code} className="reveal" style={{ background: 'white', borderRadius: 24, overflow: 'hidden', boxShadow: '0 8px 30px rgba(45,8,32,0.08)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 50px rgba(45,8,32,0.12)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 30px rgba(45,8,32,0.08)'; }}
-              >
-                <div style={{ background: p.color, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
-                  <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontFamily: "'Fredoka', sans-serif", fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 50, letterSpacing: '0.08em' }}>{p.badge}</span>
-                  <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.5rem', color: 'white', margin: '12px 0 4px' }}>{p.title}</h3>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.5 }}>{p.desc}</p>
-                </div>
-                <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between' }}>
-                  <div style={{ background: '#FBF0F8', border: `2px dashed ${p.color}`, borderRadius: 10, padding: '8px 16px', flex: 1 }}>
-                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: p.color, letterSpacing: '0.1em' }}>{p.code}</span>
-                  </div>
-                  <button onClick={() => copyCode(p.code)} style={{ background: p.color, color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
-                    {copiedCode === p.code ? '✓ Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ─── DEPOIMENTOS ───────────────────────────────────────────────── */}
       <section style={{ padding: '100px 24px', maxWidth: 1200, margin: '0 auto' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -381,8 +328,11 @@ export default function Home() {
               ))}
             </div>
             <div className="reveal-left" style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
-              <a href={STUDIO.social.instagram ?? 'https://instagram.com'} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
-                📸 Instagram
+              <a href={SPECIALISTS.carol.instagram} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
+                📸 Instagram Carol
+              </a>
+              <a href={SPECIALISTS.malu.instagram} target="_blank" rel="noopener noreferrer" className="btn-pink" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
+                📸 Instagram Malu
               </a>
               <Link to="/agendamento" className="btn-secondary" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)', fontSize: '0.9rem', padding: '10px 20px' }}>
                 Agendar →
