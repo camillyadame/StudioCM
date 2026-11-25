@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { MAPS_URL, SPECIALISTS, STUDIO, describeSchedule, whatsappUrl } from '@catalog'
-import carolAvatar from '@/imports/carol-lash-designer-v2.png'
-import maluAvatar from '@/imports/malu-nail-designer.png'
-import carolWork from '@/imports/VolumeArabe.jpeg'
-import maluWork from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
-import galLashes1 from '@/imports/Volume6d.jpeg'
-import galNails1 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
-import galLashes2 from '@/imports/WhatsApp_Image_2026-08-11_at_22.18.33.jpeg'
-import galNails2 from '@/imports/WhatsApp_Image_2026-08-09_at_18.56.18.jpeg'
+import carolAvatar from '@/assets/equipe/carol.png'
+import maluAvatar from '@/assets/equipe/malu.png'
+import carolWork from '@/assets/trabalhos/cilios-volume-arabe.jpeg'
+import maluWork from '@/assets/trabalhos/unhas-banho-de-gel.jpeg'
+import galLashes1 from '@/assets/trabalhos/cilios-volume-6d.jpeg'
+import galNails1 from '@/assets/trabalhos/unhas-alongamento-simples.jpeg'
+import galLashes2 from '@/assets/trabalhos/cilios-volume-light.jpeg'
+import galNails2 from '@/assets/trabalhos/unhas-galeria.jpeg'
 
 function useReveal(rootRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {

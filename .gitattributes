@@ -147,3 +147,6 @@
 
 # Imagem de compartilhamento do link: blob normal (a Vercel precisa do arquivo real)
 public/og-image.jpg -filter -diff -merge binary
+
+# Imagens do site: blobs normais (a Vercel builda sem Git LFS)
+src/assets/** -filter -diff -merge binary

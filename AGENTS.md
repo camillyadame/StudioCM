@@ -1,41 +1,34 @@
-# figma-make-app
+# Studio CM
 
-React + Vite + Tailwind CSS project running inside Figma Make.
+Site do Studio CM (estúdio de beleza) com agendamento integrado ao Google Calendar. Visão geral, arquitetura e como rodar estão no `README.md`.
 
-## Development Server
+## Estrutura
 
-A Vite development server is **already running** on `$PORT` (default 8443). You don't need to start it manually.
+- `src/` front-end em React 19 + TypeScript + Vite + Tailwind CSS v4
+  - `src/pages/` páginas (Home, Serviços, Galeria, Agendamento e as páginas da Carol e da Malu)
+  - `src/components/` componentes compartilhados
+  - `src/data/` conteúdo estático (fotos de trabalhos)
+  - `src/assets/equipe/` e `src/assets/trabalhos/` imagens usadas no site
+- `server/` API em Node.js + Express 5
+  - `server/src/server.ts` rotas, disponibilidade, pré-reservas e rotina de expiração
+  - `server/src/catalog.ts` serviços, durações e jornada de cada profissional
+  - `server/src/protection.ts` rate limit e validação; testes em `protection.test.ts`
+- `.figma/make/` configuração usada pelo `vite.config.ts` (o projeto começou no Figma Make); não remover sem ajustar o Vite
 
-- Preview URL: The user can access the running app through the preview panel
-- Hot reload: Changes to source files are reflected immediately
+## Comandos
 
-## Project Structure
+```bash
+npm run dev              # front-end
+npm run build            # build do front-end
+cd server && npm run dev # API
+cd server && npm test    # testes da API
+```
 
-This is the canonical project structure. Start with task-relevant files below. Only follow imports or inspect other files when required, when a documented path is missing, or when the repository contradicts this guide.
+O CI (`.github/workflows/ci.yml`) roda o build do front-end, `tsc --noEmit` e os testes da API.
 
-- `src/main.tsx` - React entrypoint; imports `src/index.css` and mounts `src/App.tsx` into the `#root` element
-- `src/App.tsx` - Primary application component and the usual starting point for UI work
-- `src/index.css` - Global CSS entrypoint and Tailwind CSS v4 import
-- `index.html` - Vite HTML shell containing the `#root` element and loading `src/main.tsx`
-- `package.json` - Project dependencies and the Vite build, development, preview, and formatting scripts
-- `vite.config.ts` - Vite configuration with React, Tailwind CSS v4, and Figma Make plugins plus the `@` alias for `src`
-- `.mise.toml` - Toolchain versions for Node.js and pnpm
+## Convenções
 
-## Dependencies
-
-- Runtime: React 19 and React DOM 19
-- Styling: Tailwind CSS v4 with the `@tailwindcss/vite` plugin
-- Build tooling: Vite 8, TypeScript 5.7, and `@vitejs/plugin-react`
-- Formatting: oxfmt
-
-## Styling
-
-This project uses **Tailwind CSS v4** through the `@tailwindcss/vite` plugin configured in `vite.config.ts`. `src/index.css` imports Tailwind with `@import 'tailwindcss';`. Use Tailwind utility classes directly in JSX and put global CSS or Tailwind v4 theme customization in `src/index.css`. This scaffold does not need a Tailwind config file or PostCSS config.
-
-`src/main.tsx` imports `src/index.css`, so global font wiring belongs in `src/index.css`. Keep CSS `@import` statements first, then add any `@font-face` rules and font-family defaults there.
-
-## Code quality
-
-- Use double quotes for strings containing apostrophes (`"We're here to help"`), or escape them in single-quoted strings. An unescaped apostrophe in a single-quoted string breaks the build.
-- Ensure JSX tags are closed and braces are balanced.
-- Export components as default exports.
+- O Google Calendar de cada profissional é a fonte da verdade da agenda. Regras de disponibilidade ficam no servidor, nunca no navegador.
+- Nunca versionar `.env`, chaves de conta de serviço ou dados de clientes.
+- Imagens novas vão em `src/assets/`, com nomes descritivos em minúsculas e hífens. Elas são blobs normais no Git (sem LFS), porque a Vercel faz o build sem Git LFS.
+- Textos de interface em português do Brasil.

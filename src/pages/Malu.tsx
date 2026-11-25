@@ -1,6 +1,6 @@
 import ProfilePage, { type ProfileContent } from '@/components/ProfilePage'
 import { MaluMenu } from '@/components/ServiceMenus'
-import maluAvatar from '@/imports/malu-nail-designer.png'
+import maluAvatar from '@/assets/equipe/malu.png'
 
 const CONTENT: ProfileContent = {
   id: 'malu',
