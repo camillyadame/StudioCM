@@ -8,7 +8,7 @@ import {
   normalizeBrazilPhone,
   withLock,
 } from './protection.js'
-import { expireStalePrebookings } from './prebookings.js'
+import { expireStalePrebookings, isHoldingSlot } from './prebookings.js'
 
 test('normaliza WhatsApp brasileiro', () => {
   assert.equal(normalizeBrazilPhone('(18) 99999-9999'), '5518999999999')
@@ -62,16 +62,22 @@ test('trava executa uma gravação por vez', async () => {
   assert.deepEqual(order, ['a:start', 'a:end', 'b:start', 'b:end'])
 })
 
-test('expira só pré-reservas antigas que continuam pendentes', async () => {
+test('expira só pré-reservas vencidas que continuam pendentes', async () => {
   const now = new Date('2026-11-25T12:00:00Z')
-  const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000).toISOString()
-  const pending = { source: 'studiocm-site', paymentStatus: 'pending' }
+  const minutesFromNow = (m: number) => new Date(now.getTime() + m * 60_000).toISOString()
+  const pending = (expiresAt?: string) => ({
+    source: 'studiocm-site',
+    paymentStatus: 'pending',
+    ...(expiresAt ? { expiresAt } : {}),
+  })
 
   const events = [
-    { id: 'old', created: hoursAgo(30), summary: 'PRÉ-RESERVA • Fox • Ana', extendedProperties: { private: pending } },
-    { id: 'new', created: hoursAgo(2), summary: 'PRÉ-RESERVA • Fox • Bia', extendedProperties: { private: pending } },
+    { id: 'old', summary: 'PRÉ-RESERVA • Fox • Ana', extendedProperties: { private: pending(minutesFromNow(-1)) } },
+    { id: 'new', summary: 'PRÉ-RESERVA • Fox • Bia', extendedProperties: { private: pending(minutesFromNow(5)) } },
     // Profissional confirmou editando o título: não pode expirar.
-    { id: 'paid', created: hoursAgo(30), summary: 'CONFIRMADO • Fox • Cris', extendedProperties: { private: pending } },
+    { id: 'paid', summary: 'CONFIRMADO • Fox • Cris', extendedProperties: { private: pending(minutesFromNow(-30)) } },
+    // Criada antes da regra dos 10 minutos (sem expiresAt): nunca expira sozinha.
+    { id: 'legacy', summary: 'PRÉ-RESERVA • Fox • Dani', extendedProperties: { private: pending() } },
   ]
   const patched: { eventId: string; requestBody: Record<string, unknown> }[] = []
 
@@ -88,13 +94,24 @@ test('expira só pré-reservas antigas que continuam pendentes', async () => {
   const result = await expireStalePrebookings(
     fakeCalendar as never,
     [{ specialist: 'carol', calendarId: 'carol@test' }],
-    24,
     { now },
   )
 
-  assert.deepEqual(result, { checked: 2, expired: 1, errors: 0 })
+  assert.deepEqual(result, { checked: 3, expired: 1, errors: 0 })
   assert.equal(patched.length, 1)
   assert.equal(patched[0].eventId, 'old')
   assert.equal(patched[0].requestBody.summary, 'EXPIRADA • Fox • Ana')
   assert.equal(patched[0].requestBody.transparency, 'transparent')
+})
+
+test('pré-reserva vencida não conta no limite por WhatsApp', () => {
+  const now = new Date('2026-11-25T12:00:00Z')
+  const base = { summary: 'PRÉ-RESERVA • Fox • Ana' }
+  const props = (expiresAt?: string) => ({
+    private: { source: 'studiocm-site', paymentStatus: 'pending', ...(expiresAt ? { expiresAt } : {}) },
+  })
+
+  assert.equal(isHoldingSlot({ ...base, extendedProperties: props('2026-11-25T12:05:00Z') }, now), true)
+  assert.equal(isHoldingSlot({ ...base, extendedProperties: props('2026-11-25T11:55:00Z') }, now), false)
+  assert.equal(isHoldingSlot({ ...base, extendedProperties: props() }, now), true)
 })

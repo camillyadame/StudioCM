@@ -83,6 +83,20 @@ const phoneLimiter = createRateLimiter({
 // Pré-reservas futuras ainda não pagas permitidas por WhatsApp.
 const MAX_PENDING_PER_PHONE = envNumber('BOOKING_MAX_PENDING_PER_PHONE', 2)
 
+/*
+  Quanto tempo uma pré-reserva segura o horário sem o sinal confirmado.
+  Padrão: 10 minutos. PREBOOKING_TTL_MINUTES=0 desliga a expiração.
+  PREBOOKING_EXPIRY_DRY_RUN=true só registra no log o que expiraria.
+*/
+const PREBOOKING_TTL_MINUTES = (() => {
+  const raw = process.env.PREBOOKING_TTL_MINUTES
+  const value = raw === undefined || raw === '' ? 10 : Number(raw)
+  return Number.isFinite(value) && value > 0 ? value : 0
+})()
+const PREBOOKING_EXPIRY_DRY_RUN =
+  process.env.PREBOOKING_EXPIRY_DRY_RUN === 'true'
+const EXPIRY_CHECK_INTERVAL_MS = 60_000
+
 const TIME_ZONE = 'America/Sao_Paulo'
 const BRAZIL_OFFSET = '-03:00'
 const SLOT_INTERVAL_MINUTES = 15
@@ -588,7 +602,7 @@ app.post('/api/bookings', async (req, res) => {
         ok: false,
         code: 'TOO_MANY_PENDING',
         message:
-          'Você já tem pré-reservas aguardando o sinal. Envie o comprovante pelo WhatsApp ou aguarde a confirmação antes de reservar outro horário.',
+          'Você já tem pré-reservas aguardando o sinal. Faça o Pix e envie o comprovante pelo WhatsApp antes de reservar outro horário.',
       })
     }
 
@@ -626,6 +640,10 @@ app.post('/api/bookings', async (req, res) => {
       const specialistName = SPECIALISTS[specialist].name
 
       const paymentRule = getPaymentRule(specialist)
+      const expiresAt =
+        PREBOOKING_TTL_MINUTES > 0
+          ? new Date(Date.now() + PREBOOKING_TTL_MINUTES * 60_000)
+          : null
 
       const description = [
         'Agendamento criado pelo site StudioCM.',
@@ -639,6 +657,9 @@ app.post('/api/bookings', async (req, res) => {
         '',
         paymentRule,
         'Status: PRÉ-RESERVA — aguardando confirmação do sinal.',
+        expiresAt
+          ? `Se o sinal não for confirmado até ${expiresAt.toLocaleTimeString('pt-BR', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' })}, o horário é liberado automaticamente. Para confirmar, tire "PRÉ-RESERVA" do título.`
+          : null,
         notes ? '' : null,
         notes ? `Observações: ${notes}` : null,
       ]
@@ -664,6 +685,7 @@ app.post('/api/bookings', async (req, res) => {
               paymentStatus: 'pending',
               specialist,
               customerPhone: normalizedPhone,
+              ...(expiresAt ? { expiresAt: expiresAt.toISOString() } : {}),
             },
           },
         },
@@ -681,6 +703,8 @@ app.post('/api/bookings', async (req, res) => {
           durationMinutes: duration,
           customerName: name,
           status: 'pending_payment',
+          expiresAt: expiresAt?.toISOString() ?? null,
+          holdMinutes: PREBOOKING_TTL_MINUTES || null,
         },
         message:
           'Pré-reserva criada na agenda. O horário está bloqueado aguardando o pagamento do sinal.',
@@ -696,20 +720,9 @@ app.post('/api/bookings', async (req, res) => {
   }
 })
 
-/*
-  Expiração de pré-reservas não pagas.
-  PREBOOKING_TTL_HOURS: depois de quantas horas sem confirmação o horário
-  é liberado. Sem a variável (ou 0), a expiração fica desligada.
-  PREBOOKING_EXPIRY_DRY_RUN=true só registra no log o que expiraria.
-*/
-const PREBOOKING_TTL_HOURS = Number(process.env.PREBOOKING_TTL_HOURS ?? 0)
-const PREBOOKING_EXPIRY_DRY_RUN =
-  process.env.PREBOOKING_EXPIRY_DRY_RUN === 'true'
-const EXPIRY_CHECK_INTERVAL_MS = 15 * 60_000
-
 function startPrebookingExpiry() {
-  if (!Number.isFinite(PREBOOKING_TTL_HOURS) || PREBOOKING_TTL_HOURS <= 0) {
-    console.log('[expiração] desligada (PREBOOKING_TTL_HOURS não definido).')
+  if (PREBOOKING_TTL_MINUTES <= 0) {
+    console.log('[expiração] desligada (PREBOOKING_TTL_MINUTES=0).')
     return
   }
 
@@ -726,7 +739,6 @@ function startPrebookingExpiry() {
           { specialist: 'carol', calendarId: carolCalendarId },
           { specialist: 'malu', calendarId: maluCalendarId },
         ],
-        PREBOOKING_TTL_HOURS,
         { dryRun: PREBOOKING_EXPIRY_DRY_RUN },
       )
 
@@ -741,9 +753,9 @@ function startPrebookingExpiry() {
   }
 
   console.log(
-    `[expiração] ligada: ${PREBOOKING_TTL_HOURS}h${
+    `[expiração] ligada: ${PREBOOKING_TTL_MINUTES} min${
       PREBOOKING_EXPIRY_DRY_RUN ? ' (simulação)' : ''
-    }, verificando a cada 15 min.`,
+    }, verificando a cada minuto.`,
   )
 
   void run()

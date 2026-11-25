@@ -42,6 +42,8 @@ type BookingResponse = {
     durationMinutes: number
     customerName: string
     status: string
+    expiresAt?: string | null
+    holdMinutes?: number | null
   }
 }
 
@@ -115,6 +117,7 @@ export default function Booking() {
   // Campo-isca invisível: pessoas não preenchem; robôs costumam preencher.
   const [website, setWebsite] = useState('')
   const [done, setDone] = useState(false)
+  const [holdMinutes, setHoldMinutes] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -371,6 +374,7 @@ export default function Booking() {
         )
       }
 
+      setHoldMinutes(data.booking?.holdMinutes ?? null)
       setDone(true)
     } catch (error) {
       console.error('Erro ao criar pré-reserva:', error)
@@ -410,7 +414,9 @@ export default function Booking() {
           </div>
 
           <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', marginBottom: 20 }}>
-            Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Faça o Pix abaixo e depois envie o comprovante pelo WhatsApp. 💕
+            {holdMinutes
+              ? `Seu horário ficará reservado por ${holdMinutes} minutos aguardando o sinal. Faça o Pix abaixo e envie o comprovante pelo WhatsApp logo em seguida. Se o sinal não for confirmado nesse prazo, o horário volta a ficar disponível. 💕`
+              : 'Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Faça o Pix abaixo e depois envie o comprovante pelo WhatsApp. 💕'}
           </p>
 
           {pixKey && depositValue !== null && (
