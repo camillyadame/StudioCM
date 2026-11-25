@@ -135,6 +135,7 @@ export const SPECIALISTS: Record<SpecialistId, Specialist> = {
       5: { start: '09:00', end: '18:00' },
       6: { start: '08:00', end: '13:00' },
     },
+    // Confirmado pela Camilly em 2026-11-25: a Malu só atende nestes horários de início.
     fixedStartTimes: {
       0: [],
       1: [],
@@ -183,7 +184,7 @@ export const SERVICES: Service[] = [
   { id: 'carol-buco', specialist: 'carol', kind: 'adicional', name: 'Buço', price: 15, durationMinutes: 90 },
 
   // Malu
-  { id: 'malu-along-simples', specialist: 'malu', kind: 'aplicacao', name: 'Alongamento Gel na Tips — Simples / Decoração simples', price: 115, durationMinutes: 135, durationLabel: 'até 2h15' }, // A CONFIRMAR: R$ 115 (antes R$ 110 na página Serviços)
+  { id: 'malu-along-simples', specialist: 'malu', kind: 'aplicacao', name: 'Alongamento Gel na Tips — Simples / Decoração simples', price: 115, durationMinutes: 135, durationLabel: 'até 2h15' },
   { id: 'malu-along-simples-manut', specialist: 'malu', kind: 'manutencao', name: 'Manutenção Alongamento Gel na Tips — Simples / Decoração simples', price: 90, durationMinutes: 120 }, // A CONFIRMAR: duração
   { id: 'malu-along-nailart', specialist: 'malu', kind: 'aplicacao', name: 'Alongamento Gel na Tips — Nail Art / Decorações 3D', price: 130, durationMinutes: 180, durationLabel: 'até 3h' },
   { id: 'malu-along-nailart-manut', specialist: 'malu', kind: 'manutencao', name: 'Manutenção Alongamento Gel na Tips — Nail Art / Decorações 3D', price: 110, durationMinutes: 120 }, // A CONFIRMAR: duração
@@ -317,29 +318,43 @@ function formatHour(time: string) {
 
 /**
  * Resume o horário de atendimento, juntando dias seguidos com o mesmo
- * horário. Ex.: "Seg a Sex 9h às 18h · Sáb 9h às 14h".
+ * horário. Ex.: "Seg a Sex 9h às 18h · Sáb 9h às 14h" ou, com horários
+ * fixos, "Ter a Sex 9h, 11h, 14h e 16h · Sáb 8h e 10h".
  */
 export function describeSchedule(specialist: SpecialistId, separator = ' · ') {
-  const schedule = SPECIALISTS[specialist].schedule
+  const { schedule, fixedStartTimes } = SPECIALISTS[specialist]
   const order = [1, 2, 3, 4, 5, 6, 0]
-  const groups: { from: number; to: number; day: NonNullable<WorkDay> }[] = []
+
+  // Quem atende em horários fixos (Malu) mostra os horários de início;
+  // as demais mostram o intervalo de atendimento.
+  const describeDay = (d: number) => {
+    const day = schedule[d]
+    if (!day) return null
+    if (fixedStartTimes) {
+      const times = (fixedStartTimes[d] ?? []).map(formatHour)
+      if (times.length === 0) return null
+      return times.length === 1 ? times[0] : `${times.slice(0, -1).join(', ')} e ${times[times.length - 1]}`
+    }
+    return `${formatHour(day.start)} às ${formatHour(day.end)}`
+  }
+
+  const groups: { from: number; to: number; text: string }[] = []
 
   for (const d of order) {
-    const day = schedule[d]
-    if (!day) continue
+    const text = describeDay(d)
+    if (!text) continue
     const last = groups[groups.length - 1]
-    const prevIndex = last ? order.indexOf(last.to) : -1
-    if (last && order.indexOf(d) === prevIndex + 1 && last.day.start === day.start && last.day.end === day.end) {
+    if (last && order.indexOf(d) === order.indexOf(last.to) + 1 && last.text === text) {
       last.to = d
     } else {
-      groups.push({ from: d, to: d, day })
+      groups.push({ from: d, to: d, text })
     }
   }
 
   return groups
     .map((g) => {
       const days = g.from === g.to ? DAY_SHORT[g.from] : `${DAY_SHORT[g.from]} a ${DAY_SHORT[g.to]}`
-      return `${days} ${formatHour(g.day.start)} às ${formatHour(g.day.end)}`
+      return `${days} ${g.text}`
     })
     .join(separator)
 }
