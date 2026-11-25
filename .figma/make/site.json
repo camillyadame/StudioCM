@@ -7,5 +7,9 @@
   "accessibility": {
     "addBypassLinks": false,
     "ignoreReducedMotion": false
+  },
+  "language": "pt-BR",
+  "openGraph": {
+    "image": "https://studio-cm.vercel.app/og-image.jpg"
   }
 }
