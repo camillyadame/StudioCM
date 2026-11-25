@@ -910,6 +910,30 @@ a:hover > .btn-arrow {
   transform: scale(1.04);
 }
 
+.home-gallery-item .frame {
+  position: relative;
+}
+
+/* Recorte por ponto focal: o ponto (--fx, --fy) da foto fica no centro do
+   quadro, ampliado em --zoom vezes a largura do quadro. */
+img.is-focused,
+.home-gallery-item img.is-focused,
+.home-specialist-media img.is-focused {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--zoom, 1) * 100%);
+  height: auto;
+  max-width: none;
+  object-fit: initial;
+  transform: translate(calc(var(--fx) * -1), calc(var(--fy) * -1));
+}
+
+.home-specialist:hover .home-specialist-media img.is-focused,
+.home-gallery-item:hover img.is-focused {
+  transform: translate(calc(var(--fx) * -1), calc(var(--fy) * -1)) scale(1.03);
+}
+
 .home-gallery-item figcaption {
   display: flex;
   justify-content: space-between;

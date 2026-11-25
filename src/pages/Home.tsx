@@ -5,9 +5,9 @@ import carolAvatar from '@/imports/carol-lash-designer-v2.png'
 import maluAvatar from '@/imports/malu-nail-designer.png'
 import carolWork from '@/imports/VolumeArabe.jpeg'
 import maluWork from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
-import galLashes1 from '@/imports/Captura_de_tela_de_2026-08-12_15-42-29.png'
+import galLashes1 from '@/imports/Volume6d.jpeg'
 import galNails1 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
-import galLashes2 from '@/imports/WhatsApp_Image_2026-08-11_at_22.35.13.jpeg'
+import galLashes2 from '@/imports/WhatsApp_Image_2026-08-11_at_22.18.33.jpeg'
 import galNails2 from '@/imports/WhatsApp_Image_2026-08-09_at_18.56.18.jpeg'
 
 function useReveal(rootRef: React.RefObject<HTMLElement | null>) {
@@ -24,6 +24,15 @@ function useReveal(rootRef: React.RefObject<HTMLElement | null>) {
 }
 
 // Depoimentos ainda aguardam confirmação de que são reais.
+type Focus = { x: string; y: string; zoom: number } | undefined
+
+// Fotos de cílios são recortadas no olhar: mostram o trabalho sem expor o
+// rosto da cliente nem sugerir que ela é a profissional.
+function focusStyle(focus: Focus): React.CSSProperties | undefined {
+  if (!focus) return undefined
+  return { '--fx': focus.x, '--fy': focus.y, '--zoom': focus.zoom } as React.CSSProperties
+}
+
 const TESTIMONIALS = [
   { name: 'Ana Luíza', about: 'Cílios com a Carol', text: 'A Carol transformou meu olhar! Cada sessão é um mimo e os resultados duram muito mais do que eu esperava.' },
   { name: 'Bianca Torres', about: 'Unhas com a Malu', text: 'As unhas da Malu são obras de arte. Ela entende exatamente o que você quer, mesmo quando você não sabe explicar.' },
@@ -41,6 +50,7 @@ const SPECIALIST_ROWS = [
     image: carolWork,
     imageAlt: 'Extensão de cílios volume árabe feita pela Carol',
     caption: 'Volume árabe',
+    focus: { x: '63%', y: '43%', zoom: 3.4 },
     accent: 'var(--carol)',
     text: 'Especialista em extensão de cílios com técnicas que valorizam o seu olhar. Materiais hipoalergênicos e um resultado natural e duradouro, pensado para o seu rosto.',
   },
@@ -51,16 +61,17 @@ const SPECIALIST_ROWS = [
     image: maluWork,
     imageAlt: 'Unhas com nail art feitas pela Malu',
     caption: 'Nail art',
+    focus: undefined,
     accent: 'var(--malu)',
     text: 'Nail designer apaixonada por criar arte nas pontas dos dedos. Alongamento em gel, banho de gel, esmaltação e nail art personalizada que reflete quem você é.',
   },
 ]
 
 const GALLERY = [
-  { src: galLashes1, alt: 'Cílios volumosos', area: 'Cílios', who: 'Carol' },
-  { src: galNails1, alt: 'Unhas decoradas com nail art', area: 'Unhas', who: 'Malu' },
-  { src: galNails2, alt: 'Unhas com esmaltação delicada', area: 'Unhas', who: 'Malu' },
-  { src: galLashes2, alt: 'Extensão de cílios', area: 'Cílios', who: 'Carol' },
+  { src: galLashes1, alt: 'Detalhe de extensão de cílios', area: 'Cílios', who: 'Carol', focus: { x: '75%', y: '35%', zoom: 2.6 } },
+  { src: galNails1, alt: 'Unhas decoradas com nail art', area: 'Unhas', who: 'Malu', focus: undefined },
+  { src: galNails2, alt: 'Unhas com esmaltação delicada', area: 'Unhas', who: 'Malu', focus: undefined },
+  { src: galLashes2, alt: 'Detalhe de extensão de cílios', area: 'Cílios', who: 'Carol', focus: { x: '63%', y: '57%', zoom: 3.4 } },
 ]
 
 export default function Home() {
@@ -151,7 +162,7 @@ export default function Home() {
                   style={{ '--accent': row.accent } as React.CSSProperties}
                 >
                   <figure className="home-specialist-media" style={{ margin: 0 }}>
-                    <img src={row.image} alt={row.imageAlt} loading="lazy" />
+                    <img src={row.image} alt={row.imageAlt} loading="lazy" className={row.focus ? 'is-focused' : undefined} style={focusStyle(row.focus)} />
                     <figcaption>{row.caption} — {s.name}</figcaption>
                   </figure>
 
@@ -204,7 +215,7 @@ export default function Home() {
             {GALLERY.map((img, i) => (
               <figure key={i} className="home-gallery-item reveal">
                 <div className="frame">
-                  <img src={img.src} alt={img.alt} loading="lazy" />
+                  <img src={img.src} alt={img.alt} loading="lazy" className={img.focus ? 'is-focused' : undefined} style={focusStyle(img.focus)} />
                 </div>
                 <figcaption>
                   <span>{String(i + 1).padStart(2, '0')} — {img.area}</span>
