@@ -1,7 +1,7 @@
 import { SPECIALISTS } from '@catalog'
 import ProfilePage, { type ProfileContent } from '@/components/ProfilePage'
 import { CarolMenu } from '@/components/ServiceMenus'
-import carolAvatar from '@/imports/carol-lash-designer-v2.png'
+import carolAvatar from '@/assets/equipe/carol.png'
 
 const CONTENT: ProfileContent = {
   id: 'carol',
