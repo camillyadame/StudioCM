@@ -8,8 +8,17 @@ import {
   isSpecialist,
   servicesOf,
   whatsappUrl as buildWhatsappUrl,
+  type ServiceKind,
   type SpecialistId,
 } from '@catalog'
+
+const SERVICE_GROUPS: { kind: ServiceKind; label: string }[] = [
+  { kind: 'aplicacao', label: 'Aplicações' },
+  { kind: 'manutencao', label: 'Manutenções' },
+  { kind: 'adicional', label: 'Adicionais' },
+]
+
+const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 type Step = 1 | 2 | 3 | 4
 
@@ -467,268 +476,228 @@ export default function Booking() {
     }
   }
 
-  if (done) {
-    return (
-      <div style={{ paddingTop: 70, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '100px 24px', textAlign: 'center' }}>
-        <div style={{ maxWidth: 520 }}>
-          <div style={{ fontSize: '4rem', marginBottom: 24 }} className="animate-float">🎉</div>
-          <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '2.5rem', color: '#2D0820', margin: '0 0 16px' }}>
-            Pré-reserva criada! ♡
-          </h2>
 
-          <div style={{ background: 'white', borderRadius: 24, padding: '28px', border: '2px solid #E8DAFF', margin: '24px 0', textAlign: 'left' }}>
-            {[
-              { label: 'Especialista', value: `${selectedSpec?.name} — ${selectedSpec?.role}` },
-              { label: 'Serviço', value: service },
-              { label: 'Data', value: formatDatePtBr(date) },
-              { label: 'Horário', value: time },
-              { label: 'Cliente', value: form.name },
-            ].map((row) => (
-              <div key={row!.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F5EEFF', gap: 12 }}>
-                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.9rem', color: '#8B5A7A' }}>{row!.label}</span>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', fontWeight: 600, textAlign: 'right' }}>{row!.value}</span>
+  const STEP_LABELS = ['Serviço', 'Data e hora', 'Seus dados', 'Confirmar']
+
+  const summaryRows = [
+    selectedSpec ? { label: 'Profissional', value: `${selectedSpec.name} · ${selectedSpec.role}` } : null,
+    service ? { label: 'Serviço', value: service } : null,
+    servicePrice !== null ? { label: 'Valor', value: formatCurrency(servicePrice) } : null,
+    depositValue !== null ? { label: 'Sinal para reservar', value: formatCurrency(depositValue) } : null,
+    date ? { label: 'Data', value: formatDatePtBr(date) } : null,
+    time ? { label: 'Horário', value: time } : null,
+  ].filter((row): row is { label: string; value: string } => Boolean(row))
+
+  const accentStyle = { '--accent': selectedSpec ? `var(--${selectedSpec.id})` : 'var(--magenta)' } as React.CSSProperties
+
+  if (done) {
+    const doneRows = [
+      { label: 'Profissional', value: `${selectedSpec?.name} · ${selectedSpec?.role}` },
+      { label: 'Serviço', value: service ?? '' },
+      { label: 'Data', value: formatDatePtBr(date) },
+      { label: 'Horário', value: time ?? '' },
+      { label: 'Cliente', value: form.name },
+    ]
+
+    return (
+      <div className="ed-container booking-done" style={accentStyle}>
+        <p className="section-label animate-fade-in">Pré-reserva criada</p>
+        <h1 className="ed-display booking-done-title animate-fade-up delay-100">
+          Quase <span className="ed-serif">lá!</span>
+        </h1>
+        <p className="ed-body animate-fade-up delay-200">
+          {holdMinutes
+            ? `Seu horário ficará reservado por ${formatHold(holdMinutes)} aguardando o sinal. Faça o Pix abaixo e envie o comprovante pelo WhatsApp logo em seguida. Se o sinal não for confirmado nesse prazo, o horário volta a ficar disponível.`
+            : 'Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Faça o Pix abaixo e depois envie o comprovante pelo WhatsApp.'}
+        </p>
+
+        <div className="booking-done-grid animate-fade-up delay-300">
+          <dl className="booking-summary-list">
+            {doneRows.map((row) => (
+              <div key={row.label}>
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
               </div>
             ))}
-          </div>
-
-          <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#8B5A7A', marginBottom: 20 }}>
-            {holdMinutes
-              ? `Seu horário ficará reservado por ${formatHold(holdMinutes)} aguardando o sinal. Faça o Pix abaixo e envie o comprovante pelo WhatsApp logo em seguida. Se o sinal não for confirmado nesse prazo, o horário volta a ficar disponível. 💕`
-              : 'Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Faça o Pix abaixo e depois envie o comprovante pelo WhatsApp. 💕'}
-          </p>
+          </dl>
 
           {pixKey && depositValue !== null && (
-            <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '18px 20px', marginBottom: 28, textAlign: 'left' }}>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 8px' }}>💳 Pix para pagamento do sinal</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#5A3050', margin: '0 0 6px' }}>Valor: <strong>{formatCurrency(depositValue)}</strong></p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#5A3050', margin: 0, overflowWrap: 'anywhere' }}>Chave Pix da {selectedSpec?.name}: <strong>{pixKey}</strong></p>
+            <div className="booking-pix">
+              <p className="ed-eyebrow">Pix do sinal</p>
+              <p className="booking-pix-value">{formatCurrency(depositValue)}</p>
+              <p className="booking-pix-key">
+                Chave Pix da {selectedSpec?.name}
+                <strong>{pixKey}</strong>
+              </p>
             </div>
           )}
+        </div>
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/" className="btn-pink">Voltar para início ♡</Link>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              Enviar comprovante pelo WhatsApp →
-            </a>
-          </div>
+        <div className="home-cta-actions booking-done-actions">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            Enviar comprovante pelo WhatsApp <span className="btn-arrow">↗</span>
+          </a>
+          <Link to="/" className="btn-secondary">Voltar para o início</Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ paddingTop: 70 }}>
-      <section style={{ background: 'linear-gradient(135deg, #2D0820, #4D1060)', padding: '60px 24px 40px', textAlign: 'center' }}>
-        <div className="animate-fade-up">
-          <span style={{ background: 'rgba(196,168,232,0.2)', border: '1px solid rgba(196,168,232,0.4)', color: '#C4A8E8', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '5px 14px', borderRadius: 50, display: 'inline-block', marginBottom: 16 }}>
-            ♡ Agendamento
-          </span>
-
-          <h1 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 3rem)', color: 'white', margin: '0 0 32px' }}>
-            Agende seu <span style={{ color: '#E0198A' }}>horário</span>
-          </h1>
+    <div style={accentStyle}>
+      <header className="ed-container booking-head">
+        <div className="home-hero-meta ed-eyebrow animate-fade-in">
+          <span>Agendamento online</span>
+          <span>Passo {step} de 4</span>
         </div>
+        <h1 className="ed-display booking-title animate-fade-up delay-100">
+          Agende seu <span className="ed-serif">horário</span>
+        </h1>
 
-        <div className="animate-fade-up delay-200" style={{ display: 'flex', justifyContent: 'center', gap: 0, maxWidth: 480, margin: '0 auto' }}>
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', flex: s < 4 ? 1 : 'none' }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: step >= s ? (step === s ? '#E0198A' : '#C4A8E8') : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: step >= s ? 'white' : 'rgba(255,255,255,0.4)', transition: 'all 0.3s ease', flexShrink: 0 }}>
-                {step > s ? '✓' : s}
+        <ol className="booking-steps animate-fade-up delay-200" aria-label="Etapas do agendamento">
+          {STEP_LABELS.map((label, i) => {
+            const n = (i + 1) as Step
+            const state = step > n ? 'is-done' : step === n ? 'is-current' : ''
+            return (
+              <li key={label} className={state} aria-current={step === n ? 'step' : undefined}>
+                <span className="booking-step-n">{step > n ? '✓' : String(n).padStart(2, '0')}</span>
+                <span className="booking-step-label">{label}</span>
+              </li>
+            )
+          })}
+        </ol>
+      </header>
+
+      <div className="ed-container booking-layout">
+        <section className="booking-main" aria-live="polite">
+          {step === 1 && (
+            <div className="booking-panel">
+              <h2 className="booking-h2">Com quem você quer agendar?</h2>
+
+              <div className="booking-specialists" role="radiogroup" aria-label="Profissional">
+                {SPECIALISTS.map((sp) => (
+                  <button
+                    key={sp.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={specialist === sp.id}
+                    className={`booking-specialist ${specialist === sp.id ? 'is-selected' : ''}`}
+                    style={{ '--accent': `var(--${sp.id})`, '--tint': `var(--${sp.id}-tint)` } as React.CSSProperties}
+                    onClick={() => {
+                      setSpecialist(sp.id)
+                      setService(null)
+                    }}
+                  >
+                    <span className="booking-specialist-name">{sp.name}</span>
+                    <span className="booking-specialist-role">{sp.role}</span>
+                    <span className="booking-specialist-desc">{sp.specialty}</span>
+                  </button>
+                ))}
               </div>
 
-              {s < 4 && (
-                <div style={{ flex: 1, height: 2, background: step > s ? '#C4A8E8' : 'rgba(255,255,255,0.15)', transition: 'background 0.3s' }} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="animate-fade-up delay-300" style={{ display: 'flex', justifyContent: 'center', gap: 0, maxWidth: 480, margin: '8px auto 0', paddingLeft: 0 }}>
-          {['Serviço', 'Data & Hora', 'Seus dados', 'Confirmar'].map((label, i) => (
-            <div key={label} style={{ flex: i < 3 ? 1 : 'none', textAlign: 'center', minWidth: 36 }}>
-              <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.7rem', color: step >= i + 1 ? 'rgba(251,240,248,0.9)' : 'rgba(251,240,248,0.4)', whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ padding: '60px 24px 100px', maxWidth: 780, margin: '0 auto' }}>
-        {step === 1 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Escolha a especialista e o serviço
-            </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 32 }}>
-              {SPECIALISTS.map((sp) => (
-                <button
-                  key={sp.id}
-                  onClick={() => {
-                    setSpecialist(sp.id)
-                    setService(null)
-                  }}
-                  style={{ background: specialist === sp.id ? sp.bg : 'white', border: `2px solid ${specialist === sp.id ? sp.color : 'rgba(196,168,232,0.2)'}`, borderRadius: 20, padding: '24px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.3s ease', transform: specialist === sp.id ? 'scale(1.02)' : 'scale(1)' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div style={{ width: 44, height: 44, background: sp.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', color: sp.color, border: `2px solid ${sp.color}30` }}>
-                      {sp.icon}
-                    </div>
-
-                    <div>
-                      <p style={{ fontFamily: "'Dancing Script', cursive", fontSize: '1.4rem', color: sp.color, margin: 0, fontWeight: 700 }}>{sp.name}</p>
-                      <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.75rem', color: '#8B5A7A', margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{sp.role}</p>
-                    </div>
-                  </div>
-
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#5A3050', margin: 0 }}>{sp.specialty}</p>
-                </button>
-              ))}
-            </div>
-
-            {specialist && (
-              <div>
-                <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '16px 20px', marginBottom: 24 }}>
-                  <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 6px' }}>
-                    {selectedSpec?.id === 'carol' ? '✦ Confirmação de agendamento — Carol' : '♡ Confirmação de agendamento — Malu'}
-                  </p>
-
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
+              {specialist && isSpecialist(specialist) && (
+                <>
+                  <p className="menu-notice booking-notice">
                     {depositRule?.type === 'percent'
                       ? `Para confirmar seu agendamento com a ${selectedSpec?.name}, é necessário o pagamento antecipado de um sinal correspondente a ${depositRule.value}% do valor do procedimento escolhido.`
                       : `Para confirmar seu agendamento com a ${selectedSpec?.name}, é necessário o pagamento antecipado de um sinal fixo de ${formatCurrency(depositRule?.value ?? 0)}.`}
                   </p>
-                </div>
 
-                <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>
-                  Selecione o serviço:
-                </h3>
+                  <h3 className="booking-h3">Escolha o serviço</h3>
+                  {SERVICE_GROUPS.map((group) => {
+                    const items = servicesOf(specialist, group.kind)
+                    if (items.length === 0) return null
+                    return (
+                      <div key={group.kind} className="booking-service-group">
+                        <p className="ed-eyebrow booking-group-label">{group.label}</p>
+                        <div className="booking-services" role="radiogroup" aria-label={group.label}>
+                          {items.map((sv) => (
+                            <button
+                              key={sv.id}
+                              type="button"
+                              role="radio"
+                              aria-checked={service === sv.name}
+                              className={`booking-option ${service === sv.name ? 'is-selected' : ''}`}
+                              onClick={() => setService(sv.name)}
+                            >
+                              <span>{sv.name}</span>
+                              <strong>{formatCurrency(sv.price)}</strong>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+            </div>
+          )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-                  {selectedSpec?.services.map((sv) => (
-                    <button
-                      key={sv}
-                      onClick={() => setService(sv)}
-                      style={{ background: service === sv ? accentBg : 'white', border: `1.5px solid ${service === sv ? accentColor : 'rgba(196,168,232,0.25)'}`, borderRadius: 12, padding: '12px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: service === sv ? accentColor : '#2D0820', transition: 'all 0.2s ease' }}
-                    >
-                      {selectedSpec.icon} {sv}
-                    </button>
-                  ))}
-                </div>
-                {service && servicePrice !== null && depositValue !== null && (
-                  <div style={{ background:'white', border:`1.5px solid ${accentColor}30`, borderRadius:16, padding:'16px 20px', marginTop:20 }}>
-                    <p style={{ fontFamily:"'Fredoka', sans-serif", fontWeight:700, color:accentColor, margin:'0 0 8px' }}>Valor e sinal</p>
-                    <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:'0 0 4px' }}>Procedimento: <strong>{formatCurrency(servicePrice)}</strong></p>
-                    <p style={{ fontFamily:"'Nunito', sans-serif", color:'#5A3050', margin:0 }}>Sinal para reservar: <strong>{formatCurrency(depositValue)}</strong>{depositRule?.type === 'percent' ? ` (${depositRule.value}%)` : ' (valor fixo)'}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Escolha a data e horário
-            </h2>
-
-            <div style={{ marginBottom: 32 }}>
-              <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>
-                Data:
-              </h3>
+          {step === 2 && (
+            <div className="booking-panel">
+              <h2 className="booking-h2">Escolha a data</h2>
 
               {loadingDates ? (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0 }}>
-                    Consultando os dias com horários disponíveis...
-                  </p>
-                </div>
+                <p className="booking-status is-loading">Consultando os dias com horários disponíveis…</p>
               ) : visibleDates.length === 0 ? (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0, lineHeight: 1.5 }}>
-                    Não há horários disponíveis nos próximos 30 dias ♡
-                  </p>
-                </div>
+                <p className="booking-status">Não há horários disponíveis nos próximos 30 dias.</p>
               ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                <div className="booking-dates" role="radiogroup" aria-label="Data">
                   {visibleDates.map((d) => {
                     const key = toIsoDate(d)
-                    const dayName = DAYS[d.getDay()]
-                    const dayNum = d.getDate()
-
                     return (
                       <button
                         key={key}
+                        type="button"
+                        role="radio"
+                        aria-checked={date === key}
+                        aria-label={d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        className={`booking-date ${date === key ? 'is-selected' : ''}`}
                         onClick={() => setDate(key)}
-                        style={{ background: date === key ? accentColor : 'white', border: `1.5px solid ${date === key ? accentColor : 'rgba(196,168,232,0.3)'}`, borderRadius: 12, padding: '10px 16px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s ease', minWidth: 70 }}
                       >
-                        <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.7rem', color: date === key ? 'rgba(255,255,255,0.8)' : '#8B5A7A', margin: '0 0 2px', fontWeight: 600, textTransform: 'uppercase' }}>
-                          {dayName}
-                        </p>
-
-                        <p style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.3rem', fontWeight: 700, color: date === key ? 'white' : '#2D0820', margin: 0 }}>
-                          {dayNum}
-                        </p>
+                        <span className="booking-date-day">{DAYS[d.getDay()]}</span>
+                        <span className="booking-date-num">{d.getDate()}</span>
+                        <span className="booking-date-month">{MONTHS[d.getMonth()]}</span>
                       </button>
                     )
                   })}
                 </div>
               )}
-            </div>
 
-            <div>
-              <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#2D0820', marginBottom: 16 }}>
-                Horário:
-              </h3>
+              <h2 className="booking-h2" style={{ marginTop: 40 }}>Escolha o horário</h2>
 
-              {!date && (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0 }}>
-                    Escolha uma data para consultar os horários disponíveis.
-                  </p>
-                </div>
-              )}
+              {!date && <p className="booking-status">Escolha uma data para ver os horários disponíveis.</p>}
 
               {date && loadingTimes && (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0 }}>
-                    Consultando a agenda da {selectedSpec?.name}...
-                  </p>
-                </div>
+                <p className="booking-status is-loading">Consultando a agenda da {selectedSpec?.name}…</p>
               )}
 
               {date && availabilityError && !loadingTimes && (
-                <div style={{ background: '#FFF3F7', border: '1.5px solid rgba(224,25,138,0.25)', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#A52B68', margin: 0, lineHeight: 1.5 }}>
-                    {availabilityError}
-                  </p>
-                </div>
+                <p className="booking-status is-error" role="alert">{availabilityError}</p>
               )}
 
               {date && !loadingTimes && !availabilityError && availableTimes.length === 0 && (
-                <div style={{ background: '#FBF0F8', border: '1.5px solid #E8DAFF', borderRadius: 14, padding: '16px 18px' }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#8B5A7A', margin: 0, lineHeight: 1.5 }}>
-                    {availabilityReason ?? 'Não há horários disponíveis nesta data. Escolha outro dia ♡'}
-                  </p>
-                </div>
+                <p className="booking-status">
+                  {availabilityReason ?? 'Não há horários disponíveis nesta data. Escolha outro dia.'}
+                </p>
               )}
 
               {date && !loadingTimes && !availabilityError && availableTimes.length > 0 && (
                 <>
                   {durationMinutes && (
-                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.82rem', color: '#8B5A7A', margin: '0 0 14px' }}>
-                      Os horários abaixo já consideram a duração do procedimento e os compromissos existentes na agenda.
+                    <p className="booking-hint">
+                      Os horários já consideram a duração do procedimento e os compromissos da agenda.
                     </p>
                   )}
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  <div className="booking-times" role="radiogroup" aria-label="Horário">
                     {availableTimes.map((t) => (
                       <button
                         key={t}
+                        type="button"
+                        role="radio"
+                        aria-checked={time === t}
+                        className={`booking-time ${time === t ? 'is-selected' : ''}`}
                         onClick={() => setTime(t)}
-                        style={{ background: time === t ? accentColor : 'white', border: `1.5px solid ${time === t ? accentColor : 'rgba(196,168,232,0.3)'}`, borderRadius: 12, padding: '10px 18px', cursor: 'pointer', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.95rem', color: time === t ? 'white' : '#2D0820', transition: 'all 0.2s ease' }}
                       >
                         {t}
                       </button>
@@ -737,170 +706,168 @@ export default function Booking() {
                 </>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {step === 3 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Seus dados
-            </h2>
+          {step === 3 && (
+            <div className="booking-panel">
+              <h2 className="booking-h2">Seus dados</h2>
 
-            <div style={{ display: 'grid', gap: 16 }}>
-              {[
-                { key: 'name', label: 'Nome completo *', placeholder: 'Como posso te chamar?', type: 'text', maxLength: 80 },
-                { key: 'phone', label: 'WhatsApp *', placeholder: '(18) 99999-9999', type: 'tel', maxLength: 20 },
-                { key: 'email', label: 'E-mail', placeholder: 'seu@email.com', type: 'email', maxLength: 120 },
-              ].map((f) => (
-                <div key={f.key}>
-                  <label style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: '#2D0820', display: 'block', marginBottom: 8 }}>
-                    {f.label}
+              <div className="booking-form">
+                {[
+                  { key: 'name', label: 'Nome completo', required: true, placeholder: 'Como podemos te chamar?', type: 'text', maxLength: 80, autoComplete: 'name' },
+                  { key: 'phone', label: 'WhatsApp', required: true, placeholder: '(18) 99999-9999', type: 'tel', maxLength: 20, autoComplete: 'tel' },
+                  { key: 'email', label: 'E-mail', required: false, placeholder: 'seu@email.com', type: 'email', maxLength: 120, autoComplete: 'email' },
+                ].map((f) => (
+                  <label key={f.key} className="booking-field">
+                    <span>
+                      {f.label}
+                      {f.required ? <em> obrigatório</em> : <em> opcional</em>}
+                    </span>
+                    <input
+                      type={f.type}
+                      placeholder={f.placeholder}
+                      maxLength={f.maxLength}
+                      autoComplete={f.autoComplete}
+                      required={f.required}
+                      value={form[f.key as keyof typeof form]}
+                      onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                    />
                   </label>
-
-                  <input
-                    type={f.type}
-                    placeholder={f.placeholder}
-                    maxLength={f.maxLength}
-                    value={form[f.key as keyof typeof form]}
-                    onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, border: '1.5px solid rgba(196,168,232,0.4)', fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#2D0820', background: 'white', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = accentColor)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(196,168,232,0.4)')}
-                  />
-                </div>
-              ))}
-
-              <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
-                <label>
-                  Site
-                  <input
-                    type="text"
-                    name="website"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                  />
-                </label>
-              </div>
-
-              <div>
-                <label style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: '#2D0820', display: 'block', marginBottom: 8 }}>
-                  Observações
-                </label>
-
-                <textarea
-                  placeholder="Alguma alergia, preferência ou informação especial?"
-                  maxLength={500}
-                  value={form.notes}
-                  onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                  style={{ width: '100%', padding: '14px 18px', borderRadius: 14, border: '1.5px solid rgba(196,168,232,0.4)', fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#2D0820', background: 'white', outline: 'none', resize: 'vertical', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = accentColor)}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(196,168,232,0.4)')}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div>
-            <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1.6rem', color: '#2D0820', marginBottom: 24 }}>
-              Confirme seu agendamento
-            </h2>
-
-            <div style={{ background: 'white', borderRadius: 24, padding: '28px', border: `2px solid ${accentBg}`, marginBottom: 24 }}>
-              {[
-                { label: 'Especialista', value: `${selectedSpec?.name} — ${selectedSpec?.role}` },
-                { label: 'Serviço', value: service },
-                servicePrice !== null ? { label: 'Valor do procedimento', value: formatCurrency(servicePrice) } : null,
-                depositValue !== null ? { label: 'Sinal', value: formatCurrency(depositValue) } : null,
-                remainingValue !== null ? { label: 'Restante após o sinal', value: formatCurrency(remainingValue) } : null,
-                { label: 'Data', value: formatDatePtBr(date) },
-                { label: 'Horário', value: time },
-                { label: 'Nome', value: form.name },
-                { label: 'WhatsApp', value: form.phone },
-                form.notes ? { label: 'Obs.', value: form.notes } : null,
-              ]
-                .filter(Boolean)
-                .map((row) => (
-                  <div key={row!.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #F5EEFF', gap: 12 }}>
-                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '0.9rem', color: '#8B5A7A' }}>{row!.label}</span>
-                    <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', fontWeight: 700, textAlign: 'right' }}>{row!.value}</span>
-                  </div>
                 ))}
-            </div>
 
-            <div style={{ background: selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.06)' : 'rgba(224,25,138,0.06)', border: `1.5px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.2)' : 'rgba(224,25,138,0.2)'}`, borderRadius: 16, padding: '16px 20px', marginBottom: 16 }}>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: selectedSpec?.id === 'carol' ? '#7B2FBE' : '#E0198A', margin: '0 0 6px' }}>
-                💳 Sinal para confirmação
-              </p>
-
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: 0, lineHeight: 1.6 }}>
-                {depositValue !== null && servicePrice !== null
-                  ? depositRule?.type === 'percent'
-                    ? `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal de ${depositRule.value}% para reservar é ${formatCurrency(depositValue)}.`
-                    : `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal fixo para reservar é ${formatCurrency(depositValue)}.`
-                  : 'Selecione um serviço para visualizar o valor do sinal.'}
-              </p>
-
-              {pixKey && depositValue !== null && (
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${selectedSpec?.id === 'carol' ? 'rgba(123,47,190,0.15)' : 'rgba(224,25,138,0.15)'}` }}>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#5A3050', margin: '0 0 4px' }}>Faça o Pix de <strong>{formatCurrency(depositValue)}</strong> para:</p>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: '#2D0820', margin: 0, overflowWrap: 'anywhere' }}><strong>{pixKey}</strong></p>
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+                  <label>
+                    Site
+                    <input
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                    />
+                  </label>
                 </div>
+
+                <label className="booking-field">
+                  <span>
+                    Observações<em> opcional</em>
+                  </span>
+                  <textarea
+                    placeholder="Alguma alergia, preferência ou informação especial?"
+                    maxLength={500}
+                    rows={3}
+                    value={form.notes}
+                    onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="booking-panel">
+              <h2 className="booking-h2">Confira e confirme</h2>
+
+              <dl className="booking-summary-list">
+                {[
+                  { label: 'Profissional', value: `${selectedSpec?.name} · ${selectedSpec?.role}` },
+                  { label: 'Serviço', value: service },
+                  servicePrice !== null ? { label: 'Valor do procedimento', value: formatCurrency(servicePrice) } : null,
+                  depositValue !== null ? { label: 'Sinal', value: formatCurrency(depositValue) } : null,
+                  remainingValue !== null ? { label: 'Restante após o sinal', value: formatCurrency(remainingValue) } : null,
+                  { label: 'Data', value: formatDatePtBr(date) },
+                  { label: 'Horário', value: time },
+                  { label: 'Nome', value: form.name },
+                  { label: 'WhatsApp', value: form.phone },
+                  form.notes ? { label: 'Observações', value: form.notes } : null,
+                ]
+                  .filter(Boolean)
+                  .map((row) => (
+                    <div key={row!.label}>
+                      <dt>{row!.label}</dt>
+                      <dd>{row!.value}</dd>
+                    </div>
+                  ))}
+              </dl>
+
+              <div className="booking-pix">
+                <p className="ed-eyebrow">Sinal para confirmação</p>
+                <p className="ed-body" style={{ maxWidth: 'none' }}>
+                  {depositValue !== null && servicePrice !== null
+                    ? depositRule?.type === 'percent'
+                      ? `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal de ${depositRule.value}% para reservar é ${formatCurrency(depositValue)}.`
+                      : `Este procedimento custa ${formatCurrency(servicePrice)}. O sinal fixo para reservar é ${formatCurrency(depositValue)}.`
+                    : 'Selecione um serviço para visualizar o valor do sinal.'}
+                </p>
+                {pixKey && depositValue !== null && (
+                  <p className="booking-pix-key">
+                    Faça o Pix de {formatCurrency(depositValue)} para
+                    <strong>{pixKey}</strong>
+                  </p>
+                )}
+              </div>
+
+              <p className="booking-hint">
+                Ao continuar, o horário fica bloqueado como pré-reserva. O agendamento só é confirmado após o pagamento do sinal.
+              </p>
+
+              {submitError && (
+                <p className="booking-status is-error" role="alert">{submitError}</p>
               )}
             </div>
+          )}
 
-            <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: '#8B5A7A', lineHeight: 1.6 }}>
-              ✦ Ao continuar, o horário será bloqueado como pré-reserva. O agendamento somente será confirmado após o pagamento do sinal correspondente.
-            </p>
+          <div className="booking-nav">
+            {step > 1 ? (
+              <button type="button" onClick={() => setStep((s) => (s - 1) as Step)} className="btn-secondary">
+                ← Voltar
+              </button>
+            ) : (
+              <Link to="/" className="btn-secondary">
+                ← Início
+              </Link>
+            )}
 
-            {submitError && (
-              <div style={{ background: '#FFF3F7', border: '1.5px solid rgba(224,25,138,0.25)', borderRadius: 14, padding: '14px 16px', marginTop: 16 }}>
-                <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.88rem', color: '#A52B68', margin: 0, lineHeight: 1.5 }}>
-                  {submitError}
-                </p>
-              </div>
+            {step < 4 ? (
+              <button
+                type="button"
+                onClick={() => canNext && setStep((s) => (s + 1) as Step)}
+                className="btn-primary"
+                disabled={!canNext}
+                aria-disabled={!canNext}
+              >
+                Continuar <span className="btn-arrow">→</span>
+              </button>
+            ) : (
+              <button type="button" onClick={handleSubmit} className="btn-pink" disabled={submitting}>
+                {submitting ? 'Criando pré-reserva…' : 'Criar pré-reserva e continuar'}
+              </button>
             )}
           </div>
-        )}
+        </section>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, gap: 12 }}>
-          {step > 1 ? (
-            <button onClick={() => setStep((s) => (s - 1) as Step)} className="btn-secondary">
-              ← Voltar
-            </button>
+        <aside className="booking-aside" aria-label="Resumo do agendamento">
+          <p className="ed-eyebrow">Seu agendamento</p>
+          {summaryRows.length === 0 ? (
+            <p className="booking-aside-empty">Escolha a profissional e o serviço para começar.</p>
           ) : (
-            <Link to="/" className="btn-secondary">
-              ← Início
-            </Link>
+            <dl className="booking-summary-list is-compact">
+              {summaryRows.map((row) => (
+                <div key={row.label}>
+                  <dt>{row.label}</dt>
+                  <dd>{row.value}</dd>
+                </div>
+              ))}
+            </dl>
           )}
-
-          {step < 4 ? (
-            <button
-              onClick={() => canNext && setStep((s) => (s + 1) as Step)}
-              className="btn-pink"
-              style={{ opacity: canNext ? 1 : 0.45, cursor: canNext ? 'pointer' : 'not-allowed' }}
-            >
-              Próximo →
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              className="btn-pink"
-              disabled={submitting}
-              style={{
-                opacity: submitting ? 0.6 : 1,
-                cursor: submitting ? 'wait' : 'pointer',
-              }}
-            >
-              {submitting ? 'Criando pré-reserva...' : 'Criar pré-reserva e continuar ♡'}
-            </button>
+          {specialist && isSpecialist(specialist) && (
+            <a href={buildWhatsappUrl(specialist)} target="_blank" rel="noopener noreferrer" className="ed-link">
+              Dúvidas? Fale com a {selectedSpec?.name} <span className="btn-arrow">↗</span>
+            </a>
           )}
-        </div>
-      </section>
+        </aside>
+      </div>
     </div>
   )
 }
