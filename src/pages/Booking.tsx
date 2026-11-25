@@ -151,6 +151,8 @@ export default function Booking() {
     email: '',
     notes: '',
   })
+  // Campo-isca invisível: pessoas não preenchem; robôs costumam preencher.
+  const [website, setWebsite] = useState('')
   const [done, setDone] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -393,13 +395,17 @@ export default function Booking() {
           phone: form.phone,
           email: form.email,
           notes: form.notes,
+          website,
         }),
       })
 
       const data = (await response.json()) as BookingResponse
 
       if (!response.ok || !data.ok) {
-        if (response.status === 409 || data.code === 'TIME_UNAVAILABLE') {
+        if (
+          data.code === 'TIME_UNAVAILABLE' ||
+          (response.status === 409 && !data.code)
+        ) {
           setStep(2)
           setTime(null)
           setAvailableTimes([])
@@ -708,9 +714,9 @@ export default function Booking() {
 
             <div style={{ display: 'grid', gap: 16 }}>
               {[
-                { key: 'name', label: 'Nome completo *', placeholder: 'Como posso te chamar?', type: 'text' },
-                { key: 'phone', label: 'WhatsApp *', placeholder: '(18) 99999-9999', type: 'tel' },
-                { key: 'email', label: 'E-mail', placeholder: 'seu@email.com', type: 'email' },
+                { key: 'name', label: 'Nome completo *', placeholder: 'Como posso te chamar?', type: 'text', maxLength: 80 },
+                { key: 'phone', label: 'WhatsApp *', placeholder: '(18) 99999-9999', type: 'tel', maxLength: 20 },
+                { key: 'email', label: 'E-mail', placeholder: 'seu@email.com', type: 'email', maxLength: 120 },
               ].map((f) => (
                 <div key={f.key}>
                   <label style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: '#2D0820', display: 'block', marginBottom: 8 }}>
@@ -720,6 +726,7 @@ export default function Booking() {
                   <input
                     type={f.type}
                     placeholder={f.placeholder}
+                    maxLength={f.maxLength}
                     value={form[f.key as keyof typeof form]}
                     onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
                     style={{ width: '100%', padding: '14px 18px', borderRadius: 14, border: '1.5px solid rgba(196,168,232,0.4)', fontFamily: "'Nunito', sans-serif", fontSize: '0.95rem', color: '#2D0820', background: 'white', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
@@ -729,6 +736,20 @@ export default function Booking() {
                 </div>
               ))}
 
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+                <label>
+                  Site
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
+                </label>
+              </div>
+
               <div>
                 <label style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: '0.9rem', color: '#2D0820', display: 'block', marginBottom: 8 }}>
                   Observações
@@ -736,6 +757,7 @@ export default function Booking() {
 
                 <textarea
                   placeholder="Alguma alergia, preferência ou informação especial?"
+                  maxLength={500}
                   value={form.notes}
                   onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
                   rows={3}

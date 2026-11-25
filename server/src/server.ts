@@ -2,17 +2,79 @@ import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
 import { google } from 'googleapis'
+import {
+  LIMITS,
+  cleanText,
+  clientIp,
+  createRateLimiter,
+  isValidEmail,
+  looksLikeName,
+  normalizeBrazilPhone,
+  rateLimitByIp,
+  sendTooManyRequests,
+  withLock,
+} from './protection.js'
+import {
+  countPendingForPhone,
+  expireStalePrebookings,
+} from './prebookings.js'
 
 const app = express()
 
-app.use(cors())
-app.use(express.json())
+/*
+  Atrás de um proxy (Render, Railway, Vercel, Nginx...) o IP real da
+  cliente vem em X-Forwarded-For. TRUST_PROXY diz quantos saltos confiar;
+  sem isso o limite por IP enxergaria só o IP do proxy.
+*/
+if (process.env.TRUST_PROXY) {
+  const value = process.env.TRUST_PROXY
+  app.set('trust proxy', /^\d+$/.test(value) ? Number(value) : value)
+}
+
+/*
+  CORS_ORIGINS: lista separada por vírgula das origens que podem chamar a
+  API (ex.: https://studio-cm.vercel.app). Sem a variável, continua
+  aceitando qualquer origem, como antes.
+*/
+const allowedOrigins = (process.env.CORS_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.use(
+  cors(
+    allowedOrigins.length > 0 ? { origin: allowedOrigins } : undefined,
+  ),
+)
+app.use(express.json({ limit: '10kb' }))
 
 const PORT = Number(process.env.PORT ?? 3001)
 
 const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE
-const maluCalendarId = process.env.GOOGLE_CALENDAR_MALU
-const carolCalendarId = process.env.GOOGLE_CALENDAR_CAROL
+const maluCalendarId = process.env.GOOGLE_CALENDAR_MALU ?? ''
+const carolCalendarId = process.env.GOOGLE_CALENDAR_CAROL ?? ''
+
+function envNumber(name: string, fallback: number) {
+  const value = Number(process.env[name])
+  return Number.isFinite(value) && value > 0 ? value : fallback
+}
+
+// Reservas: por IP, por hora. Disponibilidade: por IP, por minuto.
+const bookingLimiter = createRateLimiter({
+  windowMs: 60 * 60_000,
+  max: envNumber('BOOKING_RATE_LIMIT_PER_HOUR', 5),
+})
+const availabilityLimiter = createRateLimiter({
+  windowMs: 60_000,
+  max: envNumber('AVAILABILITY_RATE_LIMIT_PER_MINUTE', 120),
+})
+// Mesmo WhatsApp, por dia (vale mesmo trocando de IP).
+const phoneLimiter = createRateLimiter({
+  windowMs: 24 * 60 * 60_000,
+  max: envNumber('BOOKING_RATE_LIMIT_PER_PHONE_PER_DAY', 4),
+})
+// Pré-reservas futuras ainda não pagas permitidas por WhatsApp.
+const MAX_PENDING_PER_PHONE = envNumber('BOOKING_MAX_PENDING_PER_PHONE', 2)
 
 const TIME_ZONE = 'America/Sao_Paulo'
 const BRAZIL_OFFSET = '-03:00'
@@ -54,6 +116,8 @@ type BookingBody = {
   phone?: string
   email?: string
   notes?: string
+  /** Campo-isca escondido no formulário: pessoas não preenchem, robôs sim. */
+  website?: string
 }
 
 const WORK_SCHEDULES: Record<SpecialistId, WeeklySchedule> = {
@@ -173,6 +237,27 @@ function isValidTime(time: string) {
   return /^\d{2}:\d{2}$/.test(time)
 }
 
+/** Data no calendário real (rejeita 2026-02-31) e dentro do limite futuro. */
+function isWithinBookingWindow(date: string) {
+  const noon = localDateTime(date, '12:00')
+
+  if (Number.isNaN(noon.getTime())) return false
+
+  const [year, month, day] = date.split('-').map(Number)
+  const check = new Date(Date.UTC(year, month - 1, day))
+
+  if (
+    check.getUTCFullYear() !== year ||
+    check.getUTCMonth() !== month - 1 ||
+    check.getUTCDate() !== day
+  ) {
+    return false
+  }
+
+  const limit = Date.now() + LIMITS.maxDaysAhead * 24 * 60 * 60_000
+  return noon.getTime() <= limit
+}
+
 function getPaymentRule(specialist: SpecialistId) {
   return specialist === 'carol'
     ? 'Sinal pendente: 30% do valor do procedimento.'
@@ -266,6 +351,15 @@ app.get('/api/calendars/test', async (_req, res) => {
   }
 })
 
+app.get('/api/availability', rateLimitByIp(availabilityLimiter))
+app.post(
+  '/api/bookings',
+  rateLimitByIp(
+    bookingLimiter,
+    'Muitas reservas a partir desta conexão. Se precisar de ajuda, fale com a gente pelo WhatsApp.',
+  ),
+)
+
 app.get('/api/availability', async (req, res) => {
   try {
     const specialistParam = String(req.query.specialist ?? '')
@@ -297,7 +391,7 @@ app.get('/api/availability', async (req, res) => {
       })
     }
 
-    if (!isValidDate(date)) {
+    if (!isValidDate(date) || !isWithinBookingWindow(date)) {
       return res.status(400).json({
         ok: false,
         message: 'Data inválida. Utilize YYYY-MM-DD.',
@@ -391,16 +485,25 @@ app.get('/api/availability', async (req, res) => {
 
 app.post('/api/bookings', async (req, res) => {
   try {
-    const body = req.body as BookingBody
+    const body = (req.body ?? {}) as BookingBody
 
-    const specialistParam = String(body.specialist ?? '')
-    const service = String(body.service ?? '').trim()
-    const date = String(body.date ?? '').trim()
-    const time = String(body.time ?? '').trim()
-    const name = String(body.name ?? '').trim()
-    const phone = String(body.phone ?? '').trim()
-    const email = String(body.email ?? '').trim()
-    const notes = String(body.notes ?? '').trim()
+    const specialistParam = cleanText(body.specialist)
+    const service = cleanText(body.service).slice(0, LIMITS.serviceMax)
+    const date = cleanText(body.date)
+    const time = cleanText(body.time)
+    const name = cleanText(body.name)
+    const phone = cleanText(body.phone)
+    const email = cleanText(body.email).toLowerCase()
+    const notes = cleanText(body.notes, true)
+
+    if (cleanText(body.website)) {
+      // Robô preencheu o campo-isca. Responde como erro genérico, sem gravar.
+      console.warn(`[reserva] campo-isca preenchido, IP ${clientIp(req)}`)
+      return res.status(400).json({
+        ok: false,
+        message: 'Não foi possível criar a pré-reserva.',
+      })
+    }
 
     if (!isSpecialist(specialistParam)) {
       return res.status(400).json({
@@ -419,10 +522,52 @@ app.post('/api/bookings', async (req, res) => {
       })
     }
 
-    if (!isValidDate(date) || !isValidTime(time)) {
+    if (
+      !isValidDate(date) ||
+      !isValidTime(time) ||
+      !isWithinBookingWindow(date)
+    ) {
       return res.status(400).json({
         ok: false,
         message: 'Data ou horário inválido.',
+      })
+    }
+
+    if (
+      name.length < LIMITS.nameMin ||
+      name.length > LIMITS.nameMax ||
+      !looksLikeName(name)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        code: 'INVALID_NAME',
+        message: 'Informe seu nome (até 80 caracteres).',
+      })
+    }
+
+    const normalizedPhone = normalizeBrazilPhone(phone)
+
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        ok: false,
+        code: 'INVALID_PHONE',
+        message: 'Informe um WhatsApp válido com DDD, ex.: (18) 99999-9999.',
+      })
+    }
+
+    if (email && (email.length > LIMITS.emailMax || !isValidEmail(email))) {
+      return res.status(400).json({
+        ok: false,
+        code: 'INVALID_EMAIL',
+        message: 'E-mail inválido. Corrija ou deixe em branco.',
+      })
+    }
+
+    if (notes.length > LIMITS.notesMax) {
+      return res.status(400).json({
+        ok: false,
+        code: 'NOTES_TOO_LONG',
+        message: `As observações podem ter até ${LIMITS.notesMax} caracteres.`,
       })
     }
 
@@ -480,98 +625,128 @@ app.post('/api/bookings', async (req, res) => {
       })
     }
 
-    /*
-      Revalida a agenda no momento exato da gravação.
-      Isso evita dois clientes reservarem o mesmo horário se ambos
-      estiverem com a página aberta ao mesmo tempo.
-    */
-    const busyPeriods = await getBusyPeriods(
-      specialist,
-      appointmentStart,
-      appointmentEnd,
+    const phoneRetryAfter = phoneLimiter.hit(normalizedPhone)
+
+    if (phoneRetryAfter !== null) {
+      return sendTooManyRequests(
+        res,
+        phoneRetryAfter,
+        'Este WhatsApp já fez várias reservas hoje. Fale com a gente pelo WhatsApp para ajustar.',
+      )
+    }
+
+    const pendingCount = await countPendingForPhone(
+      calendar,
+      [
+        { specialist: 'carol', calendarId: carolCalendarId },
+        { specialist: 'malu', calendarId: maluCalendarId },
+      ],
+      normalizedPhone,
     )
 
-    const conflict = busyPeriods.some((busyPeriod) =>
-      rangesOverlap(
-        appointmentStart,
-        appointmentEnd,
-        busyPeriod.start,
-        busyPeriod.end,
-      ),
-    )
-
-    if (conflict) {
+    if (pendingCount >= MAX_PENDING_PER_PHONE) {
       return res.status(409).json({
         ok: false,
-        code: 'TIME_UNAVAILABLE',
+        code: 'TOO_MANY_PENDING',
         message:
-          'Esse horário acabou de ficar indisponível. Escolha outro horário.',
+          'Você já tem pré-reservas aguardando o sinal. Envie o comprovante pelo WhatsApp ou aguarde a confirmação antes de reservar outro horário.',
       })
     }
 
-    const calendarId = getCalendarId(specialist)
-    const specialistName =
-      specialist === 'carol' ? 'Carol' : 'Malu'
+    return await withLock(specialist, async () => {
+      /*
+        Revalida a agenda no momento exato da gravação.
+        Isso evita dois clientes reservarem o mesmo horário se ambos
+        estiverem com a página aberta ao mesmo tempo.
+      */
+      const busyPeriods = await getBusyPeriods(
+        specialist,
+        appointmentStart,
+        appointmentEnd,
+      )
 
-    const paymentRule = getPaymentRule(specialist)
+      const conflict = busyPeriods.some((busyPeriod) =>
+        rangesOverlap(
+          appointmentStart,
+          appointmentEnd,
+          busyPeriod.start,
+          busyPeriod.end,
+        ),
+      )
 
-    const description = [
-      'Agendamento criado pelo site StudioCM.',
-      '',
-      `Cliente: ${name}`,
-      `WhatsApp: ${phone}`,
-      email ? `E-mail: ${email}` : null,
-      `Profissional: ${specialistName}`,
-      `Serviço: ${service}`,
-      `Duração reservada: ${duration} minutos`,
-      '',
-      paymentRule,
-      'Status: PRÉ-RESERVA — aguardando confirmação do sinal.',
-      notes ? '' : null,
-      notes ? `Observações: ${notes}` : null,
-    ]
-      .filter(Boolean)
-      .join('\n')
+      if (conflict) {
+        return res.status(409).json({
+          ok: false,
+          code: 'TIME_UNAVAILABLE',
+          message:
+            'Esse horário acabou de ficar indisponível. Escolha outro horário.',
+        })
+      }
 
-    const response = await calendar.events.insert({
-      calendarId,
-      requestBody: {
-        summary: `PRÉ-RESERVA • ${service} • ${name}`,
-        description,
-        start: {
-          dateTime: appointmentStart.toISOString(),
-          timeZone: TIME_ZONE,
-        },
-        end: {
-          dateTime: appointmentEnd.toISOString(),
-          timeZone: TIME_ZONE,
-        },
-        extendedProperties: {
-          private: {
-            source: 'studiocm-site',
-            paymentStatus: 'pending',
-            specialist,
-            customerPhone: phone,
+      const calendarId = getCalendarId(specialist)
+      const specialistName =
+        specialist === 'carol' ? 'Carol' : 'Malu'
+
+      const paymentRule = getPaymentRule(specialist)
+
+      const description = [
+        'Agendamento criado pelo site StudioCM.',
+        '',
+        `Cliente: ${name}`,
+        `WhatsApp: ${phone}`,
+        email ? `E-mail: ${email}` : null,
+        `Profissional: ${specialistName}`,
+        `Serviço: ${service}`,
+        `Duração reservada: ${duration} minutos`,
+        '',
+        paymentRule,
+        'Status: PRÉ-RESERVA — aguardando confirmação do sinal.',
+        notes ? '' : null,
+        notes ? `Observações: ${notes}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n')
+
+      const response = await calendar.events.insert({
+        calendarId,
+        requestBody: {
+          summary: `PRÉ-RESERVA • ${service} • ${name}`,
+          description,
+          start: {
+            dateTime: appointmentStart.toISOString(),
+            timeZone: TIME_ZONE,
+          },
+          end: {
+            dateTime: appointmentEnd.toISOString(),
+            timeZone: TIME_ZONE,
+          },
+          extendedProperties: {
+            private: {
+              source: 'studiocm-site',
+              paymentStatus: 'pending',
+              specialist,
+              customerPhone: normalizedPhone,
+            },
           },
         },
-      },
-    })
+      })
 
-    return res.status(201).json({
-      ok: true,
-      booking: {
-        eventId: response.data.id,
-        specialist,
-        specialistName,
-        service,
-        date,
-        time,
-        durationMinutes: duration,
-        customerName: name,
-        status: 'pending_payment',
-      },
-      message:
-        'Pré-reserva criada na agenda. O horário está bloqueado aguardando o pagamento do sinal.',
+      return res.status(201).json({
+        ok: true,
+        booking: {
+          eventId: response.data.id,
+          specialist,
+          specialistName,
+          service,
+          date,
+          time,
+          durationMinutes: duration,
+          customerName: name,
+          status: 'pending_payment',
+        },
+        message:
+          'Pré-reserva criada na agenda. O horário está bloqueado aguardando o pagamento do sinal.',
+      })
     })
   } catch (error) {
     console.error('Erro ao criar agendamento:', error)
@@ -583,8 +758,64 @@ app.post('/api/bookings', async (req, res) => {
   }
 })
 
+/*
+  Expiração de pré-reservas não pagas.
+  PREBOOKING_TTL_HOURS: depois de quantas horas sem confirmação o horário
+  é liberado. Sem a variável (ou 0), a expiração fica desligada.
+  PREBOOKING_EXPIRY_DRY_RUN=true só registra no log o que expiraria.
+*/
+const PREBOOKING_TTL_HOURS = Number(process.env.PREBOOKING_TTL_HOURS ?? 0)
+const PREBOOKING_EXPIRY_DRY_RUN =
+  process.env.PREBOOKING_EXPIRY_DRY_RUN === 'true'
+const EXPIRY_CHECK_INTERVAL_MS = 15 * 60_000
+
+function startPrebookingExpiry() {
+  if (!Number.isFinite(PREBOOKING_TTL_HOURS) || PREBOOKING_TTL_HOURS <= 0) {
+    console.log('[expiração] desligada (PREBOOKING_TTL_HOURS não definido).')
+    return
+  }
+
+  let running = false
+
+  const run = async () => {
+    if (running) return
+    running = true
+
+    try {
+      const result = await expireStalePrebookings(
+        calendar,
+        [
+          { specialist: 'carol', calendarId: carolCalendarId },
+          { specialist: 'malu', calendarId: maluCalendarId },
+        ],
+        PREBOOKING_TTL_HOURS,
+        { dryRun: PREBOOKING_EXPIRY_DRY_RUN },
+      )
+
+      if (result.expired > 0 || result.errors > 0) {
+        console.log('[expiração] resultado:', result)
+      }
+    } catch (error) {
+      console.error('[expiração] falha ao verificar pré-reservas:', error)
+    } finally {
+      running = false
+    }
+  }
+
+  console.log(
+    `[expiração] ligada: ${PREBOOKING_TTL_HOURS}h${
+      PREBOOKING_EXPIRY_DRY_RUN ? ' (simulação)' : ''
+    }, verificando a cada 15 min.`,
+  )
+
+  void run()
+  setInterval(run, EXPIRY_CHECK_INTERVAL_MS).unref()
+}
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(
     `StudioCM API rodando em http://localhost:${PORT}`,
   )
+
+  startPrebookingExpiry()
 })
