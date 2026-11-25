@@ -1,97 +1,75 @@
 import { Link } from 'react-router-dom'
-import { SPECIALISTS, STUDIO, describeSchedule } from '@catalog'
+import { MAPS_URL, SPECIALISTS, STUDIO, describeSchedule, whatsappUrl } from '@catalog'
 
-const SOCIAL_LINKS = [
-  { label: `Instagram da ${SPECIALISTS.carol.name}`, initial: 'C', url: SPECIALISTS.carol.instagram },
-  { label: `Instagram da ${SPECIALISTS.malu.name}`, initial: 'M', url: SPECIALISTS.malu.instagram },
+const NAV = [
+  { to: '/', label: 'Início' },
+  { to: '/servicos', label: 'Serviços' },
+  { to: '/carol', label: 'Carol — Cílios' },
+  { to: '/malu', label: 'Malu — Unhas' },
+  { to: '/galeria', label: 'Galeria' },
+  { to: '/agendamento', label: 'Agendamento' },
 ]
 
 export default function Footer() {
+  const { carol, malu } = SPECIALISTS
+
   return (
-    <footer style={{ background: '#2D0820', color: '#FBF0F8', paddingTop: 64, paddingBottom: 32 }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 48 }}>
-          {/* Brand */}
+    <footer className="site-footer">
+      <div className="ed-container">
+        <div className="site-footer-grid">
           <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginBottom: 16 }}>
-              <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: '1.3rem', color: '#C4A8E8', fontWeight: 600 }}>Studio</span>
-              <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: '1.8rem', fontWeight: 700, color: '#E0198A' }}>CM</span>
-              <span style={{ marginLeft: 2 }}>♡</span>
-            </div>
-            <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', color: 'rgba(251,240,248,0.65)', lineHeight: 1.7, maxWidth: 220 }}>
-              Onde beleza vira arte. Cílios e unhas que contam a sua história.
-            </p>
-            <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-              {SOCIAL_LINKS.map(({ label: s, initial, url }) => (
-                <a key={s} href={url} aria-label={s} title={s} target="_blank" rel="noopener noreferrer" style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(196,168,232,0.15)', border: '1px solid rgba(196,168,232,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#C4A8E8', fontSize: '0.7rem', fontFamily: "'Fredoka', sans-serif", transition: 'all 0.3s', fontWeight: 600 }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E0198A'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(196,168,232,0.15)'; (e.currentTarget as HTMLElement).style.color = '#C4A8E8'; }}
-                >
-                  {initial}
-                </a>
+            <p className="site-footer-title">{STUDIO.name}</p>
+            <p className="site-footer-tagline">Onde beleza vira arte. Cílios e unhas que contam a sua história.</p>
+          </div>
+
+          <div>
+            <p className="site-footer-title">Navegação</p>
+            <ul className="site-footer-list">
+              {NAV.map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to}>{l.label}</Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
-          {/* Links */}
           <div>
-            <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', marginBottom: 20 }}>Navegação</p>
-            {[
-              { to: '/', label: 'Início' },
-              { to: '/servicos', label: 'Serviços' },
-              { to: '/carol', label: 'Carol — Cílios' },
-              { to: '/malu', label: 'Malu — Unhas' },
-              { to: '/galeria', label: 'Galeria' },
-              { to: '/agendamento', label: 'Agendamento' },
-            ].map((l) => (
-              <Link key={l.to} to={l.to} style={{ display: 'block', color: 'rgba(251,240,248,0.65)', fontFamily: "'Nunito', sans-serif", fontSize: '0.9rem', textDecoration: 'none', marginBottom: 10, transition: 'color 0.2s' }}
-                onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#E0198A'}
-                onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'rgba(251,240,248,0.65)'}
-              >
-                {l.label}
-              </Link>
-            ))}
+            <p className="site-footer-title">Especialistas</p>
+            <ul className="site-footer-list">
+              {[carol, malu].map((s) => (
+                <li key={s.id} style={{ marginBottom: 10 }}>
+                  <a href={whatsappUrl(s.id)} target="_blank" rel="noopener noreferrer">
+                    {s.name} — {s.whatsappDisplay}
+                  </a>
+                  <small>{s.role} · {describeSchedule(s.id)}</small>
+                  <a href={s.instagram} target="_blank" rel="noopener noreferrer">
+                    <small>{s.instagramHandle}</small>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Especialistas */}
           <div>
-            <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', marginBottom: 20 }}>Especialistas</p>
-            <div style={{ marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#FBF0F8', marginBottom: 4 }}>{SPECIALISTS.carol.name} ✦</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.6)' }}>{SPECIALISTS.carol.role}<br />{SPECIALISTS.carol.specialty}</p>
-            </div>
-            <div>
-              <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, color: '#FBF0F8', marginBottom: 4 }}>{SPECIALISTS.malu.name} ✦</p>
-              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.6)' }}>{SPECIALISTS.malu.role}<br />Unhas & Manicure</p>
-            </div>
-          </div>
-
-          {/* Contato */}
-          <div>
-            <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#E0198A', marginBottom: 20 }}>Contato</p>
-            {[
-              { icon: '📍', text: `${STUDIO.address.street}\n${STUDIO.address.city}` },
-              { icon: '📱', text: `Carol (Cílios): ${SPECIALISTS.carol.whatsappDisplay}\nMalu (Unhas): ${SPECIALISTS.malu.whatsappDisplay}` },
-              { icon: '⏰', text: `Carol: ${describeSchedule('carol')}\nMalu: ${describeSchedule('malu')}` },
-              { icon: '📸', text: `Carol: ${SPECIALISTS.carol.instagramHandle}\nMalu: ${SPECIALISTS.malu.instagramHandle}` },
-            ].map((c) => (
-              <div key={c.icon} style={{ display: 'flex', gap: 10, marginBottom: 14, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '0.9rem', marginTop: 1 }}>{c.icon}</span>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.85rem', color: 'rgba(251,240,248,0.65)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{c.text}</span>
-              </div>
-            ))}
+            <p className="site-footer-title">Endereço</p>
+            <ul className="site-footer-list">
+              <li>
+                <a href={MAPS_URL} target="_blank" rel="noopener noreferrer">
+                  {STUDIO.address.street}
+                  <small>{STUDIO.address.city}</small>
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(196,168,232,0.15)', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12 }}>
-          <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: 'rgba(251,240,248,0.4)' }}>
-            © {new Date().getFullYear()} {STUDIO.name}. Todos os direitos reservados.
-          </p>
-          <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: '0.8rem', color: 'rgba(251,240,248,0.4)' }}>
-            Feito com ♡ para a beleza feminina
-          </p>
+        <div className="site-footer-bottom">
+          <span>© {new Date().getFullYear()} {STUDIO.name}</span>
+          <span>Feito com ♡ em Presidente Epitácio</span>
         </div>
       </div>
+
+      <p className="site-footer-wordmark" aria-hidden="true">Studio CM</p>
     </footer>
   )
 }
