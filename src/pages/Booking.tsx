@@ -69,6 +69,14 @@ type BookingResponse = {
   }
 }
 
+function formatHold(minutes: number) {
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60
+    return hours === 1 ? '1 hora' : `${hours} horas`
+  }
+  return minutes === 1 ? '1 minuto' : `${minutes} minutos`
+}
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
@@ -499,7 +507,7 @@ export default function Booking() {
         </h1>
         <p className="ed-body animate-fade-up delay-200">
           {holdMinutes
-            ? `Seu horário ficará reservado por ${holdMinutes} minutos aguardando o sinal. Faça o Pix abaixo e envie o comprovante pelo WhatsApp logo em seguida. Se o sinal não for confirmado nesse prazo, o horário volta a ficar disponível.`
+            ? `Seu horário ficará reservado por ${formatHold(holdMinutes)} aguardando o sinal. Faça o Pix abaixo e envie o comprovante pelo WhatsApp logo em seguida. Se o sinal não for confirmado nesse prazo, o horário volta a ficar disponível.`
             : 'Seu horário foi bloqueado na agenda e está aguardando a confirmação do sinal. Faça o Pix abaixo e depois envie o comprovante pelo WhatsApp.'}
         </p>
 
