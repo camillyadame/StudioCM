@@ -2,17 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SERVICES, SPECIALISTS, formatPrice, whatsappUrl, type SpecialistId } from '@catalog'
 import FocusImage, { type Focus } from '@/components/FocusImage'
-import capping from '@/imports/WhatsApp_Image_2026-08-11_at_23.01.43.jpeg'
-import fox from '@/imports/WhatsApp_Image_2026-08-11_at_23.00.14.jpeg'
-import volume4d from '@/imports/WhatsApp_Image_2026-08-11_at_22.36.59.jpeg'
-import volumeBrasileiro from '@/imports/WhatsApp_Image_2026-08-11_at_22.35.13.jpeg'
-import volumeLight from '@/imports/WhatsApp_Image_2026-08-11_at_22.18.33.jpeg'
-import volume6d from '@/imports/Volume6d.jpeg'
-import volumeArabe from '@/imports/VolumeArabe.jpeg'
-import maluG1 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.35.jpeg'
-import maluG2 from '@/imports/WhatsApp_Image_2026-08-09_at_18.53.48.jpeg'
-import maluG3 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.03.jpeg'
-import maluG4 from '@/imports/WhatsApp_Image_2026-08-09_at_18.54.17.jpeg'
+import { WORK_PHOTOS } from '@/data/workPhotos'
 
 type Category = 'cilios' | 'unhas'
 
@@ -29,21 +19,24 @@ type Pin = {
   focus?: Focus & { frame: number }
 }
 
-const PORTRAIT = 4 / 3
+const photo = (serviceId: string, frame?: number) => {
+  const p = WORK_PHOTOS[serviceId]
+  return { src: p.src, focus: p.focus && frame ? { ...p.focus, frame } : undefined }
+}
 
 // A ordem intercala cílios e unhas para o mural não ficar em blocos.
 const PINS: Pin[] = [
-  { id: 'volume-arabe', src: volumeArabe, title: 'Volume Árabe', alt: 'Cílios volume árabe', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-arabe'], focus: { x: 0.63, y: 0.43, zoom: 3.2, ratio: 2978 / 2233, frame: 1.35 } },
-  { id: 'nail-art-pink', src: maluG2, title: 'Alongamento com nail art', alt: 'Unhas alongadas com nail art rosa e preta', category: 'unhas', specialist: 'malu', serviceIds: ['malu-along-nailart'] },
-  { id: 'fox', src: fox, title: 'Fox Eyes', alt: 'Cílios efeito fox eyes', category: 'cilios', specialist: 'carol', serviceIds: ['carol-fox'], focus: { x: 0.72, y: 0.09, zoom: 3, ratio: PORTRAIT, frame: 1.15 } },
-  { id: 'french-leopard', src: maluG1, title: 'Alongamento simples', alt: 'Unhas francesinha com detalhe de oncinha', category: 'unhas', specialist: 'malu', serviceIds: ['malu-along-simples'] },
-  { id: 'volume-4d', src: volume4d, title: 'Volume 4D', alt: 'Cílios volume 4D', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-4d'], focus: { x: 0.66, y: 0.4, zoom: 2.6, ratio: PORTRAIT, frame: 1.5 } },
-  { id: 'banho-gel', src: maluG3, title: 'Banho de gel', alt: 'Unhas com banho de gel e francesinha amarela com glitter', category: 'unhas', specialist: 'malu', serviceIds: ['malu-banho-simples', 'malu-banho-nailart'] },
-  { id: 'volume-6d', src: volume6d, title: 'Volume 6D', alt: 'Cílios volume 6D', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-6d'], focus: { x: 0.75, y: 0.35, zoom: 2.6, ratio: 1506 / 1600, frame: 1.1 } },
-  { id: 'postica', src: maluG4, title: 'Postiça realista', alt: 'Unhas postiças realistas pretas em formato stiletto', category: 'unhas', specialist: 'malu', serviceIds: ['malu-postica-simples', 'malu-postica-nailart'] },
-  { id: 'volume-brasileiro', src: volumeBrasileiro, title: 'Volume Brasileiro', alt: 'Cílios volume brasileiro', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-brasileiro'], focus: { x: 0.66, y: 0.53, zoom: 3.4, ratio: 2794 / 2096, frame: 1.4 } },
-  { id: 'capping', src: capping, title: 'Capping', alt: 'Cílios com técnica capping', category: 'cilios', specialist: 'carol', serviceIds: ['carol-capping'], focus: { x: 0.67, y: 0.71, zoom: 3, ratio: 1280 / 960, frame: 1.25 } },
-  { id: 'volume-light', src: volumeLight, title: 'Volume Light', alt: 'Cílios volume light', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-light'], focus: { x: 0.63, y: 0.58, zoom: 4, ratio: PORTRAIT, frame: 1.55 } },
+  { id: 'volume-arabe', ...photo('carol-volume-arabe', 1.35), title: 'Volume Árabe', alt: 'Cílios volume árabe', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-arabe'] },
+  { id: 'nail-art-pink', ...photo('malu-along-nailart'), title: 'Alongamento com nail art', alt: 'Unhas alongadas com nail art rosa e preta', category: 'unhas', specialist: 'malu', serviceIds: ['malu-along-nailart'] },
+  { id: 'fox', ...photo('carol-fox', 1.15), title: 'Fox Eyes', alt: 'Cílios efeito fox eyes', category: 'cilios', specialist: 'carol', serviceIds: ['carol-fox'] },
+  { id: 'french-leopard', ...photo('malu-along-simples'), title: 'Alongamento simples', alt: 'Unhas francesinha com detalhe de oncinha', category: 'unhas', specialist: 'malu', serviceIds: ['malu-along-simples'] },
+  { id: 'volume-4d', ...photo('carol-volume-4d', 1.5), title: 'Volume 4D', alt: 'Cílios volume 4D', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-4d'] },
+  { id: 'banho-gel', ...photo('malu-banho-simples'), title: 'Banho de gel', alt: 'Unhas com banho de gel e francesinha amarela com glitter', category: 'unhas', specialist: 'malu', serviceIds: ['malu-banho-simples', 'malu-banho-nailart'] },
+  { id: 'volume-6d', ...photo('carol-volume-6d', 1.1), title: 'Volume 6D', alt: 'Cílios volume 6D', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-6d'] },
+  { id: 'postica', ...photo('malu-postica-simples'), title: 'Postiça realista', alt: 'Unhas postiças realistas pretas em formato stiletto', category: 'unhas', specialist: 'malu', serviceIds: ['malu-postica-simples', 'malu-postica-nailart'] },
+  { id: 'volume-brasileiro', ...photo('carol-volume-brasileiro', 1.4), title: 'Volume Brasileiro', alt: 'Cílios volume brasileiro', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-brasileiro'] },
+  { id: 'capping', ...photo('carol-capping', 1.25), title: 'Capping', alt: 'Cílios com técnica capping', category: 'cilios', specialist: 'carol', serviceIds: ['carol-capping'] },
+  { id: 'volume-light', ...photo('carol-volume-light', 1.55), title: 'Volume Light', alt: 'Cílios volume light', category: 'cilios', specialist: 'carol', serviceIds: ['carol-volume-light'] },
 ]
 
 type Filter = 'todos' | Category | 'salvos'

@@ -1593,6 +1593,338 @@ img.is-focused,
 }
 
 /* =========================================================
+   SERVIÇOS — cardápio editorial
+   ========================================================= */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(48px, 6vw, 88px);
+  padding-top: clamp(24px, 3vw, 40px);
+}
+
+.menu-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 16px;
+  margin-bottom: 24px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.menu-group-note {
+  color: var(--accent);
+}
+
+.menu-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: clamp(14px, 1.8vw, 22px);
+}
+
+.menu-card .focus-frame {
+  border-radius: 14px;
+}
+
+.menu-card-body {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.menu-card-body h3 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.45rem;
+  line-height: 1.05;
+}
+
+.menu-card-body span,
+.menu-row-price {
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.menu-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(32px, 5vw, 80px);
+}
+
+.menu-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-row-name {
+  font-size: 1rem;
+}
+
+.menu-row-dots {
+  flex: 1;
+  min-width: 16px;
+  border-bottom: 1px dotted var(--line-strong);
+  transform: translateY(-4px);
+}
+
+.menu-notice {
+  margin: 24px 0 0;
+  padding: 16px 18px;
+  border-left: 2px solid var(--accent);
+  background: var(--paper-deep);
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.menu-notice strong {
+  color: var(--ink);
+}
+
+/* Categorias da Malu */
+.menu-category {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) minmax(0, 0.55fr);
+  gap: clamp(16px, 3vw, 48px);
+  padding-top: 20px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.menu-category.no-photo {
+  grid-template-columns: 56px minmax(0, 1fr) minmax(0, 0.55fr);
+}
+
+.menu-category-index {
+  color: var(--accent);
+  padding-top: 10px;
+}
+
+.menu-category-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-category-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  font-weight: 650;
+  font-stretch: 112%;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.menu-warning {
+  align-self: flex-start;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.menu-table {
+  width: 100%;
+  margin-top: 4px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.menu-table th,
+.menu-table td {
+  padding: 14px 12px 14px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.menu-table thead th {
+  padding-top: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom-color: var(--line-strong);
+}
+
+.menu-table tbody th {
+  font-weight: 400;
+}
+
+.menu-table td {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.menu-table td:last-child {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.menu-category-photo {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  aspect-ratio: 4 / 5;
+  background: var(--paper-deep);
+}
+
+.menu-category-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Compromissos do studio */
+.promise-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  padding-top: clamp(56px, 7vw, 96px);
+  padding-bottom: clamp(56px, 7vw, 96px);
+}
+
+.promise {
+  padding-top: 16px;
+  border-top: 1px solid var(--night-line);
+}
+
+.promise-title {
+  margin: 14px 0 8px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+
+.promise-desc {
+  margin: 0;
+  color: var(--cream-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 960px) {
+  .menu-split,
+  .promise-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-category,
+  .menu-category.no-photo {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .menu-category-photo {
+    grid-column: 2;
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@media (max-width: 600px) {
+  .menu-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-card-body {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .menu-card-body h3 {
+    font-size: 1.2rem;
+  }
+
+  .menu-split,
+  .promise-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .menu-category,
+  .menu-category.no-photo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .menu-category-index {
+    padding-top: 0;
+  }
+
+  .menu-category-photo {
+    grid-column: auto;
+  }
+
+  /* Tabela vira lista de linhas no celular */
+  .menu-table thead {
+    display: none;
+  }
+
+  .menu-table,
+  .menu-table tbody,
+  .menu-table tr,
+  .menu-table th,
+  .menu-table td {
+    display: block;
+  }
+
+  .menu-table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .menu-table th,
+  .menu-table td {
+    padding: 2px 0;
+    border: 0;
+  }
+
+  .menu-table tbody th {
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .menu-table td {
+    display: flex;
+    justify-content: space-between;
+    white-space: normal;
+  }
+
+  .menu-table td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+}
+
+/* =========================================================
    FOOTER
    ========================================================= */
 
