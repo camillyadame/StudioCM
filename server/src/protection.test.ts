@@ -6,6 +6,8 @@ import {
   isValidEmail,
   looksLikeName,
   normalizeBrazilPhone,
+  requireAdminKey,
+  safeEqual,
   withLock,
 } from './protection.js'
 import { expireStalePrebookings, isHoldingSlot } from './prebookings.js'
@@ -114,4 +116,53 @@ test('pré-reserva vencida não conta no limite por WhatsApp', () => {
   assert.equal(isHoldingSlot({ ...base, extendedProperties: props('2026-11-25T12:05:00Z') }, now), true)
   assert.equal(isHoldingSlot({ ...base, extendedProperties: props('2026-11-25T11:55:00Z') }, now), false)
   assert.equal(isHoldingSlot({ ...base, extendedProperties: props() }, now), true)
+})
+
+test('compara chaves em tempo constante', () => {
+  assert.equal(safeEqual('abc', 'abc'), true)
+  assert.equal(safeEqual('abc', 'abd'), false)
+  assert.equal(safeEqual('', 'abc'), false)
+})
+
+function fakeExchange(headers: Record<string, string> = {}) {
+  const res = {
+    statusCode: 200,
+    body: undefined as unknown,
+    status(code: number) {
+      this.statusCode = code
+      return this
+    },
+    json(body: unknown) {
+      this.body = body
+      return this
+    },
+  }
+  const req = { get: (name: string) => headers[name.toLowerCase()] }
+  let nextCalled = false
+  const next = () => {
+    nextCalled = true
+  }
+  return { req, res, next, nextCalled: () => nextCalled }
+}
+
+test('rota de diagnóstico some sem ADMIN_KEY', () => {
+  const ex = fakeExchange({ 'x-admin-key': 'qualquer' })
+  requireAdminKey(undefined)(ex.req as never, ex.res as never, ex.next)
+  assert.equal(ex.res.statusCode, 404)
+  assert.equal(ex.nextCalled(), false)
+})
+
+test('rota de diagnóstico exige a chave certa', () => {
+  const errada = fakeExchange({ 'x-admin-key': 'errada' })
+  requireAdminKey('segredo')(errada.req as never, errada.res as never, errada.next)
+  assert.equal(errada.res.statusCode, 401)
+  assert.equal(errada.nextCalled(), false)
+
+  const sem = fakeExchange()
+  requireAdminKey('segredo')(sem.req as never, sem.res as never, sem.next)
+  assert.equal(sem.res.statusCode, 401)
+
+  const certa = fakeExchange({ 'x-admin-key': 'segredo' })
+  requireAdminKey('segredo')(certa.req as never, certa.res as never, certa.next)
+  assert.equal(certa.nextCalled(), true)
 })

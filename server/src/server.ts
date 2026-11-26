@@ -18,6 +18,7 @@ import {
   looksLikeName,
   normalizeBrazilPhone,
   rateLimitByIp,
+  requireAdminKey,
   sendTooManyRequests,
   withLock,
 } from './protection.js'
@@ -357,58 +358,70 @@ app.get('/health', (_req, res) => {
   })
 })
 
-app.get('/api/calendars/test', async (_req, res) => {
-  try {
-    const now = new Date()
-    const future = new Date(now)
-    future.setDate(future.getDate() + 7)
+/*
+  Diagnóstico: confere se a conta de serviço enxerga as duas agendas.
+  Cada chamada lista eventos no Google, então fica atrás de ADMIN_KEY
+  (cabeçalho x-admin-key) e de um limite por IP. Sem ADMIN_KEY, responde 404.
+*/
+const diagnosticLimiter = createRateLimiter({ windowMs: 60_000, max: 5 })
 
-    const calendars = [
-      {
-        id: 'carol',
-        name: 'Carol',
-        calendarId: carolCalendarId,
-      },
-      {
-        id: 'malu',
-        name: 'Malu',
-        calendarId: maluCalendarId,
-      },
-    ]
+app.get(
+  '/api/calendars/test',
+  rateLimitByIp(diagnosticLimiter),
+  requireAdminKey(process.env.ADMIN_KEY),
+  async (_req, res) => {
+    try {
+      const now = new Date()
+      const future = new Date(now)
+      future.setDate(future.getDate() + 7)
 
-    const results = await Promise.all(
-      calendars.map(async (item) => {
-        const response = await calendar.events.list({
-          calendarId: item.calendarId,
-          timeMin: now.toISOString(),
-          timeMax: future.toISOString(),
-          singleEvents: true,
-          orderBy: 'startTime',
-          maxResults: 50,
-        })
+      const calendars = [
+        {
+          id: 'carol',
+          name: 'Carol',
+          calendarId: carolCalendarId,
+        },
+        {
+          id: 'malu',
+          name: 'Malu',
+          calendarId: maluCalendarId,
+        },
+      ]
 
-        return {
-          id: item.id,
-          name: item.name,
-          accessible: true,
-          eventsFound: response.data.items?.length ?? 0,
-        }
-      }),
-    )
+      const results = await Promise.all(
+        calendars.map(async (item) => {
+          const response = await calendar.events.list({
+            calendarId: item.calendarId,
+            timeMin: now.toISOString(),
+            timeMax: future.toISOString(),
+            singleEvents: true,
+            orderBy: 'startTime',
+            maxResults: 50,
+          })
 
-    res.json({
-      ok: true,
-      calendars: results,
-    })
-  } catch (error) {
-    console.error('Erro ao testar Google Calendar:', error)
+          return {
+            id: item.id,
+            name: item.name,
+            accessible: true,
+            eventsFound: response.data.items?.length ?? 0,
+          }
+        }),
+      )
 
-    res.status(500).json({
-      ok: false,
-      message: 'Não foi possível acessar as agendas.',
-    })
-  }
-})
+      res.json({
+        ok: true,
+        calendars: results,
+      })
+    } catch (error) {
+      console.error('Erro ao testar Google Calendar:', error)
+
+      res.status(500).json({
+        ok: false,
+        message: 'Não foi possível acessar as agendas.',
+      })
+    }
+  },
+)
 
 app.get('/api/availability', rateLimitByIp(availabilityLimiter))
 app.get('/api/availability/range', rateLimitByIp(availabilityLimiter))
