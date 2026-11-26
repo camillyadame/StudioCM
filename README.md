@@ -38,6 +38,7 @@ O estúdio tem duas profissionais com serviços, durações e dias de trabalho d
 | Método | Rota | Uso |
 | --- | --- | --- |
 | `GET` | `/health` | verificação de saúde |
+| `GET` | `/api/calendars/test` | diagnóstico do acesso às agendas; exige o cabeçalho `x-admin-key` igual a `ADMIN_KEY` (sem a variável, responde 404) |
 | `GET` | `/api/availability` | horários livres de um dia |
 | `GET` | `/api/availability/range` | horários livres de várias datas de uma vez |
 | `POST` | `/api/bookings` | cria a pré-reserva |
@@ -53,7 +54,7 @@ Requer Node.js 22.
 ```bash
 # front-end
 npm install
-npm run dev            # http://localhost:5173
+npm run dev            # http://localhost:8443 (ou a porta em PORT)
 
 # API
 cd server

@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'node:crypto'
 import type { NextFunction, Request, Response } from 'express'
 
 /*
@@ -83,6 +84,41 @@ export function rateLimitByIp(limiter: RateLimiter, message?: string) {
 
     if (retryAfter !== null) {
       sendTooManyRequests(res, retryAfter, message)
+      return
+    }
+
+    next()
+  }
+}
+
+/* ---------- Rotas administrativas ---------- */
+
+/**
+  Compara duas strings em tempo constante. Os dois lados viram hash antes,
+  para terem o mesmo tamanho e o tempo não revelar quantos caracteres batem.
+*/
+export function safeEqual(a: string, b: string) {
+  const ha = createHash('sha256').update(a).digest()
+  const hb = createHash('sha256').update(b).digest()
+
+  return timingSafeEqual(ha, hb)
+}
+
+/*
+  Protege rotas de diagnóstico com o cabeçalho x-admin-key.
+  Sem ADMIN_KEY configurada, a rota responde 404, como se não existisse.
+*/
+export function requireAdminKey(expected: string | undefined) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!expected) {
+      res.status(404).json({ ok: false, message: 'Não encontrado.' })
+      return
+    }
+
+    const received = req.get('x-admin-key') ?? ''
+
+    if (!safeEqual(received, expected)) {
+      res.status(401).json({ ok: false, message: 'Não autorizado.' })
       return
     }
 
